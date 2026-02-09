@@ -1,0 +1,3253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Solicitudes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0066cc;
+            --secondary-blue: #004c99;
+            --light-blue: #e6f2ff;
+            --dark-blue: #003366;
+            --accent-yellow: #ffcc00;
+            --light-yellow: #fff9e6;
+            --dark-yellow: #e6b800;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-dark);
+        }
+        
+        .logo-container {
+            background: linear-gradient(to right, var(--primary-blue), var(--secondary-blue));
+            padding: 15px 0;
+            border-bottom: 3px solid var(--accent-yellow);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo-img {
+            height: 50px;
+            object-fit: contain;
+        }
+        
+        .system-title {
+            color: white;
+            font-weight: 600;
+            font-size: 1.6rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            margin-left: 15px;
+        }
+        
+        .company-slogan {
+            color: white;
+            font-weight: 500;
+            font-size: 1rem;
+            line-height: 1.2;
+            text-align: left;
+            margin-left: 15px;
+        }
+        
+        .company-slogan .yellow-text {
+            color: var(--accent-yellow);
+            font-weight: 600;
+        }
+        
+        .user-badge {
+            background-color: var(--accent-yellow);
+            color: var(--dark-blue);
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid white;
+        }
+        
+        .nav-tabs {
+            border-bottom: 2px solid var(--light-blue);
+        }
+        
+        .nav-tabs .nav-link {
+            font-weight: 600;
+            color: var(--text-light);
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-blue);
+            background-color: var(--light-blue);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-blue);
+            background-color: white;
+            border-bottom: 3px solid var(--accent-yellow);
+            box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+        }
+        
+        .form-section {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid var(--primary-blue);
+        }
+        
+        .form-section h4 {
+            color: var(--dark-blue);
+            border-bottom: 2px solid var(--light-blue);
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.25rem rgba(0, 102, 204, 0.25);
+        }
+        
+        .btn-custom {
+            background: linear-gradient(to right, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 102, 204, 0.2);
+        }
+        
+        .btn-custom:hover {
+            background: linear-gradient(to right, var(--secondary-blue), var(--dark-blue));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 102, 204, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(to right, var(--success-color), #218838);
+            border: none;
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(to right, #218838, #1e7e34);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-warning {
+            background-color: var(--accent-yellow);
+            color: var(--dark-blue);
+            border: none;
+        }
+        
+        .btn-warning:hover {
+            background-color: var(--dark-yellow);
+            color: var(--dark-blue);
+        }
+        
+        .history-table {
+            font-size: 0.9rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .history-table thead {
+            background: linear-gradient(to right, var(--primary-blue), var(--secondary-blue));
+            color: white;
+        }
+        
+        .history-table th {
+            font-weight: 600;
+            padding: 15px 12px;
+        }
+        
+        .history-table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .history-table tbody tr:hover {
+            background-color: var(--light-blue);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .status-badge {
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: var(--light-yellow);
+            color: var(--dark-yellow);
+            border: 1px solid var(--accent-yellow);
+        }
+        
+        .status-approved {
+            background-color: #e7f7e7;
+            color: #0f5132;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .login-container {
+            max-width: 450px;
+            margin: 80px auto;
+            padding: 40px;
+            border-radius: 15px;
+            background: linear-gradient(to bottom, white 0%, #f8f9fa 100%);
+            box-shadow: 0 10px 30px rgba(0, 102, 204, 0.15);
+            border-top: 5px solid var(--primary-blue);
+        }
+        
+        .login-container h3 {
+            color: var(--dark-blue);
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .login-logo .logo-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .login-logo .slogan {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .login-logo .yellow-text {
+            color: var(--accent-yellow);
+            font-weight: 600;
+        }
+        
+        .login-label {
+            color: var(--dark-blue);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .total-box {
+            background: linear-gradient(135deg, var(--light-yellow) 0%, #fff5cc 100%);
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.4rem;
+            margin-top: 15px;
+            text-align: center;
+            color: var(--dark-blue);
+            border: 2px solid var(--accent-yellow);
+        }
+        
+        .search-container {
+            background-color: var(--light-blue);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 102, 204, 0.1);
+        }
+        
+        .search-results {
+            font-size: 0.9rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        
+        .pagination .page-link {
+            color: var(--primary-blue);
+            border: 1px solid #dee2e6;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+        
+        .pagination .page-link:hover {
+            background-color: var(--light-blue);
+            color: var(--secondary-blue);
+        }
+        
+        .modal-header {
+            background-color: var(--primary-blue);
+            color: white;
+            border-bottom: 3px solid var(--accent-yellow);
+        }
+        
+        .modal-title {
+            font-weight: 600;
+        }
+        
+        .icon-primary {
+            color: var(--primary-blue);
+        }
+        
+        .icon-yellow {
+            color: var(--accent-yellow);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-blue);
+            margin-bottom: 8px;
+        }
+        
+        .section-divider {
+            border-top: 2px dashed var(--light-blue);
+            margin: 25px 0;
+        }
+        
+        .logout-btn {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+            border-radius: 6px;
+            padding: 8px 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background-color: white;
+            color: var(--primary-blue);
+        }
+        
+        .table-actions .btn {
+            margin-right: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .form-section {
+                padding: 20px;
+            }
+            
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            
+            .logo-img {
+                height: 40px;
+            }
+            
+            .system-title {
+                font-size: 1.2rem;
+                margin-left: 10px;
+            }
+            
+            .company-slogan {
+                font-size: 0.9rem;
+                margin-left: 10px;
+            }
+            
+            .nav-tabs .nav-link {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        .radio-group {
+            background-color: var(--light-blue);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 102, 204, 0.1);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+        
+        .form-check-label {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+        
+        .inter-logo {
+            background: linear-gradient(to right, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            font-weight: 800;
+            font-size: 1.8rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .mso-departments-section {
+            display: none;
+            margin-top: 15px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-yellow);
+        }
+        
+        .mso-departments-section.show {
+            display: block;
+        }
+        
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            min-height: 46px;
+        }
+        
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.25rem rgba(0, 102, 204, 0.25);
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            padding: 5px 10px;
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: var(--primary-blue);
+            color: white;
+            border: 1px solid var(--secondary-blue);
+            border-radius: 4px;
+            padding: 3px 8px;
+            margin: 4px 4px 4px 0;
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: white;
+            margin-right: 5px;
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+            color: var(--accent-yellow);
+        }
+        
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-grid .form-check {
+            margin-bottom: 5px;
+        }
+        
+        .empleados-seleccionados {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--light-blue);
+            border-radius: 8px;
+            border: 1px dashed var(--primary-blue);
+        }
+        
+        .empleados-seleccionados h6 {
+            color: var(--dark-blue);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .empleados-seleccionados ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+        
+        .empleados-seleccionados li {
+            margin-bottom: 3px;
+            font-size: 0.9rem;
+        }
+        
+        .badge-caracas {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+        
+        .badge-mso {
+            background-color: var(--accent-yellow);
+            color: var(--dark-blue);
+        }
+        
+        .total-empleados {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-top: 5px;
+        }
+        
+        /* Nuevos estilos para botones de exportación */
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: flex-end;
+        }
+        
+        .btn-export {
+            background: linear-gradient(to right, #6c757d, #5a6268);
+            color: white;
+            border: none;
+        }
+        
+        .btn-export:hover {
+            background: linear-gradient(to right, #5a6268, #4e555b);
+            color: white;
+        }
+        
+        .reporte-mensual-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid var(--success-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sistema de Login -->
+    <div id="loginSystem" class="login-container">
+        <div class="login-logo">
+            <div class="logo-text">inter</div>
+            <div class="slogan">Tu mundo,</div>
+            <div class="slogan yellow-text">nuestro compromiso.</div>
+            <div class="slogan" style="margin-top: 15px; font-size: 1.3rem; color: var(--dark-blue);">
+                Sistema de Gestión de Solicitudes
+            </div>
+        </div>
+        
+        <h3 class="text-center mb-4">Acceso al Sistema</h3>
+        <div class="mb-4">
+            <label class="form-label login-label">Usuario</label>
+            <select id="userSelect" class="form-select">
+                <option value="">Seleccionar usuario</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="admin">Administrador (Admin)</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="form-label login-label">Contraseña</label>
+            <input type="password" id="password" class="form-control" value="123456">
+        </div>
+        <button onclick="login()" class="btn-custom w-100">Iniciar Sesión</button>
+    </div>
+
+    <!-- Sistema Principal -->
+    <div id="mainSystem" style="display: none;">
+        <div class="logo-container">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <!-- Logo principal -->
+                        <div class="inter-logo me-3">inter</div>
+                        
+                        <div>
+                            <div class="company-slogan">Tu mundo,</div>
+                            <div class="company-slogan yellow-text">nuestro compromiso.</div>
+                        </div>
+                        
+                        <h4 class="system-title mb-0 ms-5">Sistema de Gestión de Solicitudes</h4>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span id="currentUser" class="user-badge me-3"></span>
+                        <button onclick="logout()" class="logout-btn">
+                            <i class="bi bi-box-arrow-right me-1"></i> Salir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-4">
+            <!-- Navegación por pestañas -->
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="comidas-tab" data-bs-toggle="tab" data-bs-target="#comidas" type="button">
+                        <i class="bi bi-egg-fried me-2 icon-primary"></i>Solicitud de Comidas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="traslados-tab" data-bs-toggle="tab" data-bs-target="#traslados" type="button">
+                        <i class="bi bi-truck me-2 icon-primary"></i>Solicitud de Traslados
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="historial-comidas-tab" data-bs-toggle="tab" data-bs-target="#historial-comidas" type="button">
+                        <i class="bi bi-clock-history me-2 icon-primary"></i>Historial Comidas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="historial-traslados-tab" data-bs-toggle="tab" data-bs-target="#historial-traslados" type="button">
+                        <i class="bi bi-clock-history me-2 icon-primary"></i>Historial Traslados
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-4">
+                <!-- Formulario de Comidas -->
+                <div class="tab-pane fade show active" id="comidas" role="tabpanel">
+                    <div class="form-section">
+                        <h4 class="mb-4"><i class="bi bi-egg-fried me-2 icon-yellow"></i>Solicitud de Comidas</h4>
+                        <form id="comidaForm">
+                            <!-- Personal que requiere el servicio -->
+                            <div class="mb-4">
+                                <h5 class="mb-3"><i class="bi bi-people-fill me-2 icon-primary"></i>Personal que Requiere el Servicio</h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Buscar Empleados (selección múltiple)</label>
+                                    <select id="empleadoComida" class="form-select empleado-select" style="width: 100%;" multiple="multiple">
+                                        <option value="">Seleccione o escriba para buscar empleados...</option>
+                                    </select>
+                                    <small class="form-text text-muted">Puede seleccionar múltiples empleados de CARACAS y MSO</small>
+                                </div>
+                                
+                                <div id="empleadosSeleccionadosComida" class="empleados-seleccionados" style="display: none;">
+                                    <h6>Empleados Seleccionados:</h6>
+                                    <ul id="listaEmpleadosComida"></ul>
+                                    <div class="total-empleados">Total seleccionados: <span id="totalEmpleadosComida">0</span></div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre Manual del Personal MSO (opcional)</label>
+                                    <input type="text" id="nombreManualMSOComida" class="form-control" placeholder="Ingrese nombre completo si no está en la lista">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date" id="fechaComida" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Departamento</label>
+                                    <select id="departamentoComida" class="form-select" required onchange="toggleMSODepartments('comida')">
+                                        <option value="">Seleccionar</option>
+                                        <option>Administracion</option>
+                                        <option>Area tec</option>
+                                        <option>Obras</option>
+                                        <option>Comercial</option>
+                                        <option>RRHH y SL</option>
+                                        <option>Sistemas</option>
+                                        <option value="MSO">MSO</option>
+                                        <option>Operaciones IP</option>  <!-- ¡CORREGIDO! -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Departamentos MSO (se muestra solo cuando se selecciona MSO) -->
+                            <div id="msoDepartamentosComida" class="mso-departments-section">
+                                <h6 class="mb-3"><i class="bi bi-building me-2"></i>Departamentos MSO</h6>
+                                <div class="checkbox-grid">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoMarketingComida" value="Marketing">
+                                        <label class="form-check-label" for="msoMarketingComida">Marketing</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoInterconexionesComida" value="Interconexiones">
+                                        <label class="form-check-label" for="msoInterconexionesComida">Interconexiones</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoImportacionesComida" value="Importaciones">
+                                        <label class="form-check-label" for="msoImportacionesComida">Importaciones</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoRRHHComida" value="RRHH MSO">
+                                        <label class="form-check-label" for="msoRRHHComida">RRHH MSO</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoCuentasComida" value="Cuentas corporativas">
+                                        <label class="form-check-label" for="msoCuentasComida">Cuentas corporativas</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoDocumentacionComida" value="Documentación de obras">
+                                        <label class="form-check-label" for="msoDocumentacionComida">Documentación de obras</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoPresidenciaComida" value="Presidencia">
+                                        <label class="form-check-label" for="msoPresidenciaComida">Presidencia</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tipo de Comida</label>
+                                    <div class="radio-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="tipoComida" id="almuerzo" value="Almuerzo" checked>
+                                            <label class="form-check-label" for="almuerzo">Almuerzo</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="tipoComida" id="cena" value="Cena">
+                                            <label class="form-check-label" for="cena">Cena</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Lugar donde realizará la actividad</label>
+                                <input type="text" id="lugarComida" class="form-control" list="lugaresComidaList" required>
+                                <datalist id="lugaresComidaList"></datalist>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Actividad a realizar</label>
+                                <textarea id="actividadComida" class="form-control" rows="3" required></textarea>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Cantidad comida personal interno</label>
+                                    <input type="number" id="cantidadInterno" class="form-control" min="0" value="0" readonly style="background-color: #f8f9fa;">
+                                    <small class="form-text text-muted">Calculado automáticamente según empleados seleccionados</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Cantidad comida personal externo</label>
+                                    <input type="number" id="cantidadExterno" class="form-control" min="0" value="0" onchange="calcularTotalComidas()">
+                                </div>
+                            </div>
+
+                            <div class="total-box text-center">
+                                Total de Comidas: <span id="totalComidas">0</span>
+                            </div>
+
+                            <div class="section-divider"></div>
+
+                            <h5 class="mb-3"><i class="bi bi-person-circle me-2 icon-primary"></i>Datos del Supervisor Solicitante</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nombre y Apellido</label>
+                                    <input type="text" id="nombreComida" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Departamento / Centro de Operaciones</label>
+                                    <input type="text" id="departamentoSolicitanteComida" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date" id="fechaSolicitudComida" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Hora</label>
+                                    <input type="time" id="horaSolicitudComida" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" onclick="generarPDFComida()" class="btn-custom">
+                                    <i class="bi bi-file-pdf me-2"></i> Generar PDF
+                                </button>
+                                <button type="button" onclick="guardarComida()" class="btn btn-success">
+                                    <i class="bi bi-save me-2"></i> Guardar Solicitud
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Formulario de Traslados -->
+                <div class="tab-pane fade" id="traslados" role="tabpanel">
+                    <div class="form-section">
+                        <h4 class="mb-4"><i class="bi bi-truck me-2 icon-yellow"></i>Solicitud de Traslados</h4>
+                        <form id="trasladoForm">
+                            <!-- Personal que requiere el servicio -->
+                            <div class="mb-4">
+                                <h5 class="mb-3"><i class="bi bi-people-fill me-2 icon-primary"></i>Personal que Requiere el Servicio</h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Buscar Empleados (selección múltiple)</label>
+                                    <select id="empleadoTraslado" class="form-select empleado-select" style="width: 100%;" multiple="multiple">
+                                        <option value="">Seleccione o escriba para buscar empleados...</option>
+                                    </select>
+                                    <small class="form-text text-muted">Puede seleccionar múltiples empleados de CARACAS y MSO</small>
+                                </div>
+                                
+                                <div id="empleadosSeleccionadosTraslado" class="empleados-seleccionados" style="display: none;">
+                                    <h6>Empleados Seleccionados:</h6>
+                                    <ul id="listaEmpleadosTraslado"></ul>
+                                    <div class="total-empleados">Total seleccionados: <span id="totalEmpleadosTraslado">0</span></div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre Manual del Personal MSO (opcional)</label>
+                                    <input type="text" id="nombreManualMSOTraslado" class="form-control" placeholder="Ingrese nombre completo si no está en la lista">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date" id="fechaTraslado" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Departamento</label>
+                                    <select id="departamentoTraslado" class="form-select" required onchange="toggleMSODepartments('traslado')">
+                                        <option value="">Seleccionar</option>
+                                        <option>Administracion</option>
+                                        <option>Area tec</option>
+                                        <option>Obras</option>
+                                        <option>Comercial</option>
+                                        <option>RRHH y SL</option>
+                                        <option>Sistemas</option>
+                                        <option value="MSO">MSO</option>
+                                        <option>Operaciones IP</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Departamentos MSO (se muestra solo cuando se selecciona MSO) -->
+                            <div id="msoDepartamentosTraslado" class="mso-departments-section">
+                                <h6 class="mb-3"><i class="bi bi-building me-2"></i>Departamentos MSO</h6>
+                                <div class="checkbox-grid">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoMarketingTraslado" value="Marketing">
+                                        <label class="form-check-label" for="msoMarketingTraslado">Marketing</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoInterconexionesTraslado" value="Interconexiones">
+                                        <label class="form-check-label" for="msoInterconexionesTraslado">Interconexiones</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoImportacionesTraslado" value="Importaciones">
+                                        <label class="form-check-label" for="msoImportacionesTraslado">Importaciones</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoRRHHTraslado" value="RRHH MSO">
+                                        <label class="form-check-label" for="msoRRHHTraslado">RRHH MSO</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoCuentasTraslado" value="Cuentas corporativas">
+                                        <label class="form-check-label" for="msoCuentasTraslado">Cuentas corporativas</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoDocumentacionTraslado" value="Documentación de obras">
+                                        <label class="form-check-label" for="msoDocumentacionTraslado">Documentación de obras</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="msoPresidenciaTraslado" value="Presidencia">
+                                        <label class="form-check-label" for="msoPresidenciaTraslado">Presidencia</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="mt-4 mb-3"><i class="bi bi-arrow-right-circle me-2 icon-primary"></i>IDA</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Lugar de Origen</label>
+                                    <input type="text" id="origenIda" class="form-control" list="lugaresTrasladoList" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Lugar de Destino</label>
+                                    <input type="text" id="destinoIda" class="form-control" list="lugaresTrasladoList" required>
+                                </div>
+                            </div>
+
+                            <h5 class="mt-4 mb-3"><i class="bi bi-arrow-left-circle me-2 icon-primary"></i>VUELTA</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Lugar de Origen</label>
+                                    <input type="text" id="origenVuelta" class="form-control" list="lugaresTrasladoList">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Lugar de Destino</label>
+                                    <input type="text" id="destinoVuelta" class="form-control" list="lugaresTrasladoList">
+                                </div>
+                            </div>
+                            <datalist id="lugaresTrasladoList"></datalist>
+
+                            <div class="mb-3">
+                                <label class="form-label">Actividades a realizar</label>
+                                <textarea id="actividadesTraslado" class="form-control" rows="3" required></textarea>
+                            </div>
+
+                            <div class="section-divider"></div>
+
+                            <h5 class="mb-3"><i class="bi bi-person-circle me-2 icon-primary"></i>Datos del Supervisor Solicitante</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nombre y Apellido</label>
+                                    <input type="text" id="nombreTraslado" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Departamento / Centro de Operaciones</label>
+                                    <input type="text" id="departamentoSolicitanteTraslado" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Fecha del Traslado</label>
+                                    <input type="date" id="fechaSolicitudTraslado" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Hora del Traslado</label>
+                                    <input type="time" id="horaSolicitudTraslado" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" onclick="generarPDFTraslado()" class="btn-custom">
+                                    <i class="bi bi-file-pdf me-2"></i> Generar PDF
+                                </button>
+                                <button type="button" onclick="guardarTraslado()" class="btn btn-success">
+                                    <i class="bi bi-save me-2"></i> Guardar Solicitud
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Historial de Comidas -->
+                <div class="tab-pane fade" id="historial-comidas" role="tabpanel">
+                    <div class="form-section">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4><i class="bi bi-clock-history me-2 icon-yellow"></i>Historial de Solicitudes de Comidas</h4>
+                            <div class="search-results" id="resultadosComida"></div>
+                        </div>
+                        
+                        <div class="search-container">
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Buscar por Nombre/Apellido</label>
+                                    <input type="text" id="searchNombreComida" class="form-control" placeholder="Nombre o apellido..." onkeyup="buscarComidas()">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Buscar por Departamento</label>
+                                    <select id="searchDepartamentoComida" class="form-select" onchange="buscarComidas()">
+                                        <option value="">Todos los departamentos</option>
+                                        <option>Administracion</option>
+                                        <option>Area tec</option>
+                                        <option>Obras</option>
+                                        <option>Comercial</option>
+                                        <option>RRHH y SL</option>
+                                        <option>Sistemas</option>
+                                        <option>MSO</option>
+                                        <option>Operaciones IP</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Buscar por Lugar</label>
+                                    <input type="text" id="searchLugarComida" class="form-control" placeholder="Lugar de actividad..." onkeyup="buscarComidas()">
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Fecha desde</label>
+                                    <input type="date" id="searchFechaDesdeComida" class="form-control" onchange="buscarComidas()">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Fecha hasta</label>
+                                    <input type="date" id="searchFechaHastaComida" class="form-control" onchange="buscarComidas()">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Estado</label>
+                                    <select id="searchEstadoComida" class="form-select" onchange="buscarComidas()">
+                                        <option value="">Todos los estados</option>
+                                        <option value="pendiente">Pendiente</option>
+                                        <option value="aprobado">Aprobado</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-12 d-flex justify-content-between">
+                                    <button class="btn btn-secondary" onclick="limpiarBusquedaComidas()">
+                                        <i class="bi bi-x-circle"></i> Limpiar filtros
+                                    </button>
+                                    <div>
+                                        <span class="me-2">Mostrar:</span>
+                                        <select id="itemsPorPaginaComida" class="form-select d-inline-block w-auto" onchange="buscarComidas()">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                            <option value="100">100</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de exportación -->
+                            <div class="row mt-3">
+                                <div class="col-md-12">
+                                    <div class="export-buttons">
+                                        <button class="btn btn-export" onclick="exportarPDFFiltroComidas()">
+                                            <i class="bi bi-file-pdf me-2"></i> Exportar Filtro Actual a PDF
+                                        </button>
+                                        <button class="btn btn-info" onclick="mostrarReporteMensualComidas()">
+                                            <i class="bi bi-calendar-month me-2"></i> Reporte Mensual
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección para reporte mensual -->
+                            <div id="reporteMensualComidas" class="reporte-mensual-section" style="display: none;">
+                                <h6><i class="bi bi-calendar-check me-2"></i>Generar Reporte Mensual</h6>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Seleccionar Mes</label>
+                                        <input type="month" id="mesReporteComida" class="form-control" value="">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Tipo de Reporte</label>
+                                        <select id="tipoReporteComida" class="form-select">
+                                            <option value="detallado">Detallado</option>
+                                            <option value="resumen">Resumen</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-end">
+                                        <button class="btn btn-success w-100" onclick="generarReporteMensualComidas()">
+                                            <i class="bi bi-file-earmark-pdf me-2"></i> Generar Reporte
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover history-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Solicitante</th>
+                                        <th>Departamento</th>
+                                        <th>Tipo</th>
+                                        <th>Lugar</th>
+                                        <th>Total Comidas</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historialComidasBody">
+                                    <!-- Los datos se cargarán aquí dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <nav aria-label="Navegación de páginas" id="paginacionComida">
+                            <!-- La paginación se generará dinámicamente -->
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Historial de Traslados -->
+                <div class="tab-pane fade" id="historial-traslados" role="tabpanel">
+                    <div class="form-section">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4><i class="bi bi-clock-history me-2 icon-yellow"></i>Historial de Solicitudes de Traslados</h4>
+                            <div class="search-results" id="resultadosTraslado"></div>
+                        </div>
+                        
+                        <div class="search-container">
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Buscar por Nombre/Apellido</label>
+                                    <input type="text" id="searchNombreTraslado" class="form-control" placeholder="Nombre o apellido..." onkeyup="buscarTraslados()">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Buscar por Departamento</label>
+                                    <select id="searchDepartamentoTraslado" class="form-select" onchange="buscarTraslados()">
+                                        <option value="">Todos los departamentos</option>
+                                        <option>Administracion</option>
+                                        <option>Area tec</option>
+                                        <option>Obras</option>
+                                        <option>Comercial</option>
+                                        <option>RRHH y SL</option>
+                                        <option>Sistemas</option>
+                                        <option>MSO</option>
+                                        <option>Operaciones IP</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Buscar por Origen/Destino</label>
+                                    <input type="text" id="searchUbicacionTraslado" class="form-control" placeholder="Origen o destino..." onkeyup="buscarTraslados()">
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Fecha desde</label>
+                                    <input type="date" id="searchFechaDesdeTraslado" class="form-control" onchange="buscarTraslados()">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Fecha hasta</label>
+                                    <input type="date" id="searchFechaHastaTraslado" class="form-control" onchange="buscarTraslados()">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label">Estado</label>
+                                    <select id="searchEstadoTraslado" class="form-select" onchange="buscarTraslados()">
+                                        <option value="">Todos los estados</option>
+                                        <option value="pendiente">Pendiente</option>
+                                        <option value="aprobado">Aprobado</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-12 d-flex justify-content-between">
+                                    <button class="btn btn-secondary" onclick="limpiarBusquedaTraslados()">
+                                        <i class="bi bi-x-circle"></i> Limpiar filtros
+                                    </button>
+                                    <div>
+                                        <span class="me-2">Mostrar:</span>
+                                        <select id="itemsPorPaginaTraslado" class="form-select d-inline-block w-auto" onchange="buscarTraslados()">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                            <option value="100">100</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de exportación -->
+                            <div class="row mt-3">
+                                <div class="col-md-12">
+                                    <div class="export-buttons">
+                                        <button class="btn btn-export" onclick="exportarPDFFiltroTraslados()">
+                                            <i class="bi bi-file-pdf me-2"></i> Exportar Filtro Actual a PDF
+                                        </button>
+                                        <button class="btn btn-info" onclick="mostrarReporteMensualTraslados()">
+                                            <i class="bi bi-calendar-month me-2"></i> Reporte Mensual
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección para reporte mensual -->
+                            <div id="reporteMensualTraslados" class="reporte-mensual-section" style="display: none;">
+                                <h6><i class="bi bi-calendar-check me-2"></i>Generar Reporte Mensual</h6>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Seleccionar Mes</label>
+                                        <input type="month" id="mesReporteTraslado" class="form-control" value="">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Tipo de Reporte</label>
+                                        <select id="tipoReporteTraslado" class="form-select">
+                                            <option value="detallado">Detallado</option>
+                                            <option value="resumen">Resumen</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-end">
+                                        <button class="btn btn-success w-100" onclick="generarReporteMensualTraslados()">
+                                            <i class="bi bi-file-earmark-pdf me-2"></i> Generar Reporte
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover history-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Solicitante</th>
+                                        <th>Departamento</th>
+                                        <th>Origen</th>
+                                        <th>Destino</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historialTrasladosBody">
+                                    <!-- Los datos se cargarán aquí dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <nav aria-label="Navegación de páginas" id="paginacionTraslado">
+                            <!-- La paginación se generará dinámicamente -->
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Autorización -->
+    <div class="modal fade" id="authModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Autorizar Solicitud</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalText"></p>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre y Apellido del Jefe</label>
+                        <input type="text" id="jefeNombre" class="form-control" placeholder="Ingrese nombre y apellido">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="aprobarSolicitud()">Aprobar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Edición -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Editar Solicitud</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="editModalBody">
+                    <!-- Contenido dinámico para edición -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // Variables globales
+        let currentUser = null;
+        let solicitudesComidas = JSON.parse(localStorage.getItem('solicitudesComidas')) || [];
+        let solicitudesTraslados = JSON.parse(localStorage.getItem('solicitudesTraslados')) || [];
+        let currentSolicitudId = null;
+        let currentSolicitudType = null;
+        let lugaresComida = JSON.parse(localStorage.getItem('lugaresComida')) || [];
+        let lugaresTraslado = JSON.parse(localStorage.getItem('lugaresTraslado')) || [];
+        
+        // Variables para paginación
+        let paginaActualComidas = 1;
+        let paginaActualTraslados = 1;
+
+        // Base de datos de empleados CARACAS (COMPLETA - 166 empleados)
+        const empleadosCARACAS = [
+            {id: 1, nombre: "BLANCO NEISABEL", cedula: "27904165", cargo: "ANALISTA DE ADMINISTRACION", tipo: "CARACAS"},
+            {id: 2, nombre: "VILLAMIZAR NANCY", cedula: "6662187", cargo: "COLABORADOR", tipo: "CARACAS"},
+            {id: 3, nombre: "CASTILLO TIBET", cedula: "7661440", cargo: "COLABORADOR", tipo: "CARACAS"},
+            {id: 4, nombre: "QUINTERO ROSANA", cedula: "16383764", cargo: "COLABORADOR", tipo: "CARACAS"},
+            {id: 5, nombre: "GONZALEZ LINO", cedula: "6400265", cargo: "COLABORADOR", tipo: "CARACAS"},
+            {id: 6, nombre: "MORILLO ANA", cedula: "25306408", cargo: "COLABORADOR", tipo: "CARACAS"},
+            {id: 7, nombre: "CARTAYA LENNYIS", cedula: "20279513", cargo: "COLABORADOR", tipo: "CARACAS"},
+            {id: 8, nombre: "DELGADO JONATHAN", cedula: "18750067", cargo: "COLABORADOR", tipo: "CARACAS"},
+            {id: 9, nombre: "TRONCOSO LAIS", cedula: "12624878", cargo: "JEFE DE ADMINISTRACION", tipo: "CARACAS"},
+            {id: 10, nombre: "BRITO RONEY", cedula: "23198633", cargo: "ANALISTA DE ADMINISTRACION", tipo: "CARACAS"},
+            {id: 11, nombre: "MUÑOZ KELVIN", cedula: "26271967", cargo: "ANALISTA DE ADMINISTRACION", tipo: "CARACAS"},
+            {id: 12, nombre: "GALEA CESAR", cedula: "26217830", cargo: "AUXILIAR DE ARCHIVO", tipo: "CARACAS"},
+            {id: 13, nombre: "MORENO GEINES", cedula: "12421840", cargo: "SUPERVISOR DE TESORERIA", tipo: "CARACAS"},
+            {id: 14, nombre: "MACHADO JOSE", cedula: "24671547", cargo: "ANALISTA DE TESORERIA", tipo: "CARACAS"},
+            {id: 15, nombre: "SUAREZ KIR", cedula: "25174528", cargo: "ANALISTA DE TESORERIA", tipo: "CARACAS"},
+            {id: 16, nombre: "JIMENEZ DAIRELI", cedula: "18809815", cargo: "ANALISTA DE RECURSOS HUMANOS", tipo: "CARACAS"},
+            {id: 17, nombre: "GARCIA ANGELICA", cedula: "14261558", cargo: "AUXILIAR DE ARCHIVO", tipo: "CARACAS"},
+            {id: 18, nombre: "CONTRERAS NOELIA", cedula: "15870445", cargo: "JEFE DE RECURSOS HUMANOS", tipo: "CARACAS"},
+            {id: 19, nombre: "VEGAS ENYMAR", cedula: "16903111", cargo: "ANALISTA DE RECURSOS HUMANOS", tipo: "CARACAS"},
+            {id: 20, nombre: "GOMEZ SAMUEL", cedula: "29533588", cargo: "ADMINISTRADOR DE SISTEMAS", tipo: "CARACAS"},
+            {id: 21, nombre: "LONGA JESUS", cedula: "18445586", cargo: "ADMINISTRADOR DE SISTEMAS", tipo: "CARACAS"},
+            {id: 22, nombre: "QUIJADA WILFREDO", cedula: "16462837", cargo: "SUPERVISOR DE ALMACEN", tipo: "CARACAS"},
+            {id: 23, nombre: "PINO ALEJANDRO", cedula: "26648558", cargo: "ASISTENTE DE ALMACEN", tipo: "CARACAS"},
+            {id: 24, nombre: "AMORUZO ANGELO", cedula: "10869703", cargo: "AYUDANTE DE ALMACEN", tipo: "CARACAS"},
+            {id: 25, nombre: "CHINCHILLA OSMEL", cedula: "23959744", cargo: "ASISTENTE DE ALMACEN", tipo: "CARACAS"},
+            {id: 26, nombre: "TERAN CASTO", cedula: "10256031", cargo: "JEFE DE ALMACEN REGIONAL", tipo: "CARACAS"},
+            {id: 27, nombre: "FERRER GABRIEL", cedula: "30926195", cargo: "ANALISTA DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 28, nombre: "TOVAR LUIS", cedula: "27159603", cargo: "ANALISTA DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 29, nombre: "ORTA WILNER", cedula: "17718590", cargo: "ANALISTA DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 30, nombre: "TORRES KEIVER", cedula: "29887399", cargo: "ANALISTA DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 31, nombre: "RODRIGUEZ MISAEL", cedula: "27246163", cargo: "ANALISTA DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 32, nombre: "CASTILLO JHOAN", cedula: "16332788", cargo: "ANALISTA DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 33, nombre: "VILLEGAS OSMER", cedula: "14612140", cargo: "GERENTE TECNICO REGIONAL", tipo: "CARACAS"},
+            {id: 34, nombre: "RAMOS FREDDY", cedula: "11228001", cargo: "JEFE TECNICO", tipo: "CARACAS"},
+            {id: 35, nombre: "TOVAR JAIRO", cedula: "17079514", cargo: "JEFE TECNICO", tipo: "CARACAS"},
+            {id: 36, nombre: "PEREZ LUIS", cedula: "12093200", cargo: "SUPERVISOR DE TRANSPORTE Y FLOTA", tipo: "CARACAS"},
+            {id: 37, nombre: "BRITO JOSE", cedula: "14411634", cargo: "SUPERVISOR DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 38, nombre: "ASCANIO FELIX", cedula: "16544451", cargo: "SUPERVISOR DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 39, nombre: "CORONADO MIGUEL", cedula: "30225256", cargo: "ANALISTA DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 40, nombre: "HELLO ALBANY", cedula: "25735749", cargo: "SUPERVISOR DE ADMINISTRACION TECNICA", tipo: "CARACAS"},
+            {id: 41, nombre: "PIRELA WILMER", cedula: "10509468", cargo: "JEFE TECNICO", tipo: "CARACAS"},
+            {id: 42, nombre: "CASTELLANOS FRANKLIN", cedula: "12720880", cargo: "JEFE TECNICO", tipo: "CARACAS"},
+            {id: 43, nombre: "JIMENEZ RONMEL", cedula: "14018619", cargo: "SUPERVISOR DE MANTENIMIENTO DE RED", tipo: "CARACAS"},
+            {id: 44, nombre: "PRIETO JAVIER", cedula: "22359368", cargo: "SUPERVISOR DE MANTENIMIENTO DE RED", tipo: "CARACAS"},
+            {id: 45, nombre: "LARA EDUARDO", cedula: "25231298", cargo: "INGENIERO DE CAMPO", tipo: "CARACAS"},
+            {id: 46, nombre: "CASANOVA FABIAN", cedula: "30346525", cargo: "INGENIERO DE CAMPO", tipo: "CARACAS"},
+            {id: 47, nombre: "CASTILLO ORIANA", cedula: "25871126", cargo: "INGENIERO DE CAMPO", tipo: "CARACAS"},
+            {id: 48, nombre: "GARRIDO ADOLFO", cedula: "13922051", cargo: "INGENIERO DE CAMPO", tipo: "CARACAS"},
+            {id: 49, nombre: "MORENO JOELIMAR", cedula: "25446101", cargo: "INGENIERO DE CAMPO", tipo: "CARACAS"},
+            {id: 50, nombre: "CENTENO LUIS", cedula: "12410883", cargo: "INGENIERO DE CAMPO", tipo: "CARACAS"},
+            {id: 51, nombre: "NEGRIN CARLOS", cedula: "15200727", cargo: "SUPERVISOR DE OBRA", tipo: "CARACAS"},
+            {id: 52, nombre: "LADERA DAYANA", cedula: "15581496", cargo: "SUPERVISOR DE OBRA", tipo: "CARACAS"},
+            {id: 53, nombre: "PEREZ NELSON", cedula: "11590656", cargo: "SUPERVISOR DE OBRA", tipo: "CARACAS"},
+            {id: 54, nombre: "CHACON EDUARDO", cedula: "17932248", cargo: "SUPERVISOR DE OBRA", tipo: "CARACAS"},
+            {id: 55, nombre: "UZCATEGUI DARWIN", cedula: "17077412", cargo: "SUPERVISOR DE OBRA", tipo: "CARACAS"},
+            {id: 56, nombre: "VALENZUELA CARLOS", cedula: "17979305", cargo: "SUPERVISOR DE OBRA", tipo: "CARACAS"},
+            {id: 57, nombre: "TORRES CARLOS", cedula: "25751664", cargo: "SUPERVISOR DE OBRA", tipo: "CARACAS"},
+            {id: 58, nombre: "LOPEZ JIM", cedula: "12763197", cargo: "SUPERVISOR DE OBRA", tipo: "CARACAS"},
+            {id: 59, nombre: "RAMOS LISMAR", cedula: "13312546", cargo: "JEFE DE OBRAS TECNICAS", tipo: "CARACAS"},
+            {id: 60, nombre: "CHIRINOS RHONY", cedula: "25128521", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 61, nombre: "MORALES JOSUE", cedula: "31411503", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 62, nombre: "DELGADO BRAYAN", cedula: "30256418", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 63, nombre: "REVERON ROGELIO", cedula: "27535576", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 64, nombre: "CEDEÑO LEONEL", cedula: "18297346", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 65, nombre: "UZCATEGUI BREINER", cedula: "18440635", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 66, nombre: "HERNANDEZ RAFAEL", cedula: "25569758", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 67, nombre: "VILLAMIZAR YOHAN", cedula: "28155811", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 68, nombre: "CASTRO MANUEL", cedula: "25233014", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 69, nombre: "BRICEÑO ALEXY", cedula: "14273823", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 70, nombre: "GONZALEZ JUAN", cedula: "27833224", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 71, nombre: "ROCA YUNIOR", cedula: "20919393", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 72, nombre: "DIAZ MANUEL", cedula: "23192089", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 73, nombre: "ZERPA ODREIMY", cedula: "16543584", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 74, nombre: "DIAZ ENNIO", cedula: "17570635", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 75, nombre: "MANRIQUE LUIS", cedula: "25944529", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 76, nombre: "RODRIGUEZ FELIX", cedula: "24073590", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 77, nombre: "GARCIA ANGEL", cedula: "29887005", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 78, nombre: "TONITO JULIO", cedula: "17488379", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 79, nombre: "GARCIA EDNEY", cedula: "26465747", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 80, nombre: "CASTRILLO MANUEL", cedula: "12952249", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 81, nombre: "GUERRERO GABRIEL", cedula: "19874408", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 82, nombre: "MATHEUS FERNANDO", cedula: "21281354", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 83, nombre: "GARCIA LUIS", cedula: "13713107", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 84, nombre: "VELASQUEZ JOSE", cedula: "11026852", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 85, nombre: "PERNETT CESAR", cedula: "20417299", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 86, nombre: "RODRIGUEZ OMAR", cedula: "6960767", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 87, nombre: "RAMIREZ DARWIN", cedula: "17300176", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 88, nombre: "YEMES GUILLERMO", cedula: "6895495", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 89, nombre: "BAZAN WILLIAMS", cedula: "10091810", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 90, nombre: "RAMIREZ FRANKLIN", cedula: "22391035", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 91, nombre: "LOPEZ JORGE", cedula: "13472949", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 92, nombre: "RAMOS ROBERT", cedula: "10818625", cargo: "TECNICO INTEGRAL", tipo: "CARACAS"},
+            {id: 93, nombre: "SANCHEZ GONZALO", cedula: "28319466", cargo: "INGENIERO DE SOPORTE CORPORATIVO", tipo: "CARACAS"},
+            {id: 94, nombre: "GARCIA CARLOS", cedula: "13537627", cargo: "SUPERVISOR DE INSTALACIONES DOMICILIARIAS", tipo: "CARACAS"},
+            {id: 95, nombre: "MENESES KELVIS", cedula: "27474411", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 96, nombre: "MACHADO DANNY", cedula: "10548817", cargo: "SUPERVISOR DE INSTALACIONES DOMICILIARIAS", tipo: "CARACAS"},
+            {id: 97, nombre: "ROMERO LUIS", cedula: "10348231", cargo: "SUPERVISOR DE INSTALACIONES DOMICILIARIAS", tipo: "CARACAS"},
+            {id: 98, nombre: "PALACIOS LUIS", cedula: "30793412", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 99, nombre: "HERNANDEZ SERGIO", cedula: "30926588", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 100, nombre: "VERGARA JORGE", cedula: "27742423", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 101, nombre: "BARRETO ANDRES", cedula: "30942018", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 102, nombre: "HERNANDEZ LUIS", cedula: "26908336", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 103, nombre: "MALDONADO DYLAN", cedula: "32429918", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 104, nombre: "OLIVARES JOHN", cedula: "30722103", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 105, nombre: "CASTILLO JUNIOR", cedula: "19228087", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 106, nombre: "MORA DYLAN", cedula: "33617693", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 107, nombre: "JULIO DANIEL", cedula: "29987666", cargo: "TECNICO INTEGRAL JUNIOR", tipo: "CARACAS"},
+            {id: 108, nombre: "CARVAJAL JOSE", cedula: "32104813", cargo: "TECNICO INTEGRAL (B)", tipo: "CARACAS"},
+            {id: 109, nombre: "BLANCO EDWAR", cedula: "13617784", cargo: "SUPERVISOR DE SERVICES DOMICILIARIOS", tipo: "CARACAS"},
+            {id: 110, nombre: "POSADA RAMON", cedula: "20027589", cargo: "SUPERVISOR DE SERVICES DOMICILIARIOS", tipo: "CARACAS"},
+            {id: 111, nombre: "GUZMAN CESAR", cedula: "16952583", cargo: "ADMINISTRADOR DE REDES UNIFICADAS", tipo: "CARACAS"},
+            {id: 112, nombre: "CAMPOS ARQUIMEDES", cedula: "26210630", cargo: "ADMINISTRADOR DE REDES UNIFICADAS", tipo: "CARACAS"},
+            {id: 113, nombre: "ROJAS RONALD", cedula: "18485881", cargo: "ADMINISTRADOR DE REDES UNIFICADAS", tipo: "CARACAS"},
+            {id: 114, nombre: "MOSQUERA JAVIER", cedula: "15343119", cargo: "JEFE DE HEAD END", tipo: "CARACAS"},
+            {id: 115, nombre: "ESCORCIA ELITH", cedula: "15332293", cargo: "ADMINISTRADOR DE REDES UNIFICADAS", tipo: "CARACAS"},
+            {id: 116, nombre: "VASQUEZ VICTOR", cedula: "17401578", cargo: "ADMINISTRADOR DE REDES UNIFICADAS", tipo: "CARACAS"},
+            {id: 117, nombre: "ESCALONA WUILMER", cedula: "18616337", cargo: "ADMINISTRADOR DE REDES UNIFICADAS", tipo: "CARACAS"},
+            {id: 118, nombre: "YEPEZ CESAR", cedula: "15427630", cargo: "SUPERVISOR TECNICO REGIONAL DE TV SATELITAL", tipo: "CARACAS"},
+            {id: 119, nombre: "QUINTERO OSCAR", cedula: "31448594", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 120, nombre: "MACHADO CARLOS", cedula: "25258916", cargo: "AGENTE DE VENTAS JUNIOR", tipo: "CARACAS"},
+            {id: 121, nombre: "APONTE YOSKARLA", cedula: "29736420", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 122, nombre: "AZUAJE YAMILETH", cedula: "25327147", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 123, nombre: "VALERO VANESA", cedula: "16086292", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 124, nombre: "GIL DEMIAN", cedula: "29896738", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 125, nombre: "MALVACEA ALANY", cedula: "30799449", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 126, nombre: "FIGUERA REBECA", cedula: "29802695", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 127, nombre: "VIVENES YETZIBEL", cedula: "25211868", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 128, nombre: "BERRIOS RAIDEL", cedula: "33020000", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 129, nombre: "URBAEZ HEISHMAR", cedula: "31527645", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 130, nombre: "PEREZ JEIZER", cedula: "28604957", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 131, nombre: "LABRADOR DAVID", cedula: "22032010", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 132, nombre: "VELASQUEZ JOSE", cedula: "31196221", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 133, nombre: "MARQUEZ BETANIA", cedula: "28379076", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 134, nombre: "GASCA ALEXANDRO", cedula: "29697387", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 135, nombre: "RIVERO SIMON", cedula: "22040033", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 136, nombre: "MARRON FABRIZIO", cedula: "26785408", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 137, nombre: "APONTE AHIBRAN", cedula: "31408246", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 138, nombre: "TORRES CESAR", cedula: "31991433", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 139, nombre: "PACHECO ESCARLET", cedula: "29802935", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 140, nombre: "FERNANDEZ JORGE", cedula: "29841935", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 141, nombre: "MARQUEZ ACXEL", cedula: "27078246", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 142, nombre: "BARON YOSMAR", cedula: "20155807", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 143, nombre: "SANCHEZ SARAI", cedula: "26794620", cargo: "ANALISTA DE SOPORTE COMERCIAL", tipo: "CARACAS"},
+            {id: 144, nombre: "GALVAN RICARDO", cedula: "24699850", cargo: "SUPERVISOR COMERCIAL RESIDENCIAL", tipo: "CARACAS"},
+            {id: 145, nombre: "SIERRA DAVID", cedula: "19372783", cargo: "SUPERVISOR COMERCIAL RESIDENCIAL", tipo: "CARACAS"},
+            {id: 146, nombre: "SERRANO WILLIANA", cedula: "17457708", cargo: "SUPERVISOR COMERCIAL RESIDENCIAL", tipo: "CARACAS"},
+            {id: 147, nombre: "ESCORCHE VICTORIA", cedula: "27150520", cargo: "AGENTE DE VENTAS", tipo: "CARACAS"},
+            {id: 148, nombre: "LEDEZMA RALTH", cedula: "18914002", cargo: "AGENTE DE VENTAS", tipo: "CARACAS"},
+            {id: 149, nombre: "ORTIZ KATHERINE", cedula: "18937362", cargo: "AGENTE DE VENTAS", tipo: "CARACAS"},
+            {id: 150, nombre: "SANCHEZ ADRIANA", cedula: "18313806", cargo: "GERENTE COMERCIAL", tipo: "CARACAS"},
+            {id: 151, nombre: "RODRIGUEZ MERLIN", cedula: "16226752", cargo: "JEFE COMERCIAL RESIDENCIAL", tipo: "CARACAS"},
+            {id: 152, nombre: "VAMONDE JOSE", cedula: "19932615", cargo: "JEFE COMERCIAL RESIDENCIAL", tipo: "CARACAS"},
+            {id: 153, nombre: "MARTINEZ MARINA", cedula: "12764581", cargo: "SUPERVISOR COMERCIAL CORPORATIVO", tipo: "CARACAS"},
+            {id: 154, nombre: "BORDONARO SEBASTIAN", cedula: "30030215", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"},
+            {id: 155, nombre: "LISCANO YAILETH", cedula: "20098465", cargo: "SUPERVISOR REGIONAL DE SEGURIDAD LABORAL", tipo: "CARACAS"},
+            {id: 156, nombre: "PEREZ JENNYFER", cedula: "16262744", cargo: "ANALISTA DE SEGURIDAD LABORAL", tipo: "CARACAS"},
+            {id: 157, nombre: "CARRERO JOSHUA", cedula: "13066669", cargo: "JEFE DE OBRAS TECNICAS", tipo: "CARACAS"},
+            {id: 158, nombre: "BASUALDO JORGE", cedula: "85002621", cargo: "GERENTE SENIOR REGIONAL", tipo: "CARACAS"},
+            {id: 159, nombre: "URBINA GENESIS", cedula: "27309555", cargo: "AGENTE INTEGRAL", tipo: "CARACAS"},
+            {id: 160, nombre: "MAGALLANES LUIS", cedula: "28331945", cargo: "AGENTE INTEGRAL", tipo: "CARACAS"},
+            {id: 161, nombre: "LEAL GREGORYS", cedula: "19498679", cargo: "AGENTE INTEGRAL", tipo: "CARACAS"},
+            {id: 162, nombre: "ESCALONA KARLA", cedula: "19255573", cargo: "SUPERVISOR OCAD", tipo: "CARACAS"},
+            {id: 163, nombre: "BRICEÑO ALEXA", cedula: "27007937", cargo: "AGENTE INTEGRAL", tipo: "CARACAS"},
+            {id: 164, nombre: "RUIZ EDGAR", cedula: "17080698", cargo: "SUPERVISOR OCAD", tipo: "CARACAS"},
+            {id: 165, nombre: "CEBALLOS LEONID", cedula: "29784428", cargo: "AGENTE INTEGRAL", tipo: "CARACAS"},
+            {id: 166, nombre: "RUIZ IONA", cedula: "16598224", cargo: "AGENTE DE VENTAS (B)", tipo: "CARACAS"}
+        ];
+
+        // Base de datos de empleados MSO (COMPLETA - 34 empleados)
+        const empleadosMSO = [
+            {id: 101, nombre: "ELEANNY SEQUEA", cargo: "ANALISTA DE RECURSOS HUMANOS", tipo: "MSO"},
+            {id: 102, nombre: "MIRIAMLY CAMPOS", cargo: "ASISTENTE A LA VICEPRESIDENCIA", tipo: "MSO"},
+            {id: 103, nombre: "DOMENICO CICCOLELLA", cargo: "ASISTENTE DE TRANSPORTE DE DIRECTORES", tipo: "MSO"},
+            {id: 104, nombre: "ANIBAL LOYATO", cargo: "VICEPRESIDENTE DE OPERACIONES TECNICAS", tipo: "MSO"},
+            {id: 105, nombre: "MAYCOR ARISTIGUIETA", cargo: "COORDINADOR NACIONAL DE DOCUMENTACION DE OBRA", tipo: "MSO"},
+            {id: 106, nombre: "JORGE PEÑA", cargo: "JEFE NACIONAL DE DOCUMENTACIÓN DE OBRAS", tipo: "MSO"},
+            {id: 107, nombre: "JOHANNA BORGES", cargo: "INGENIERO DE CAMPO", tipo: "MSO"},
+            {id: 108, nombre: "LUIS PADRON", cargo: "INGENIERO DE CAMPO", tipo: "MSO"},
+            {id: 109, nombre: "EDGAR QUIÑONES", cargo: "INGENIERO DE CAMPO", tipo: "MSO"},
+            {id: 110, nombre: "AMILCAR GONZALEZ", cargo: "INGENIERO DE CAMPO", tipo: "MSO"},
+            {id: 111, nombre: "EDWARD GASPAR", cargo: "COORDINADOR DE CUENTAS CORPORATIVAS", tipo: "MSO"},
+            {id: 112, nombre: "PEDRO VIVAS", cargo: "VICEPRESIDENTE COMERCIAL", tipo: "MSO"},
+            {id: 113, nombre: "YOSMAR LOPEZ", cargo: "COORDINADOR DE VENTAS", tipo: "MSO"},
+            {id: 114, nombre: "CARLA ARIAS", cargo: "GERENTE DE CUENTAS CORPORATIVAS", tipo: "MSO"},
+            {id: 115, nombre: "WILLY GUTIERREZ", cargo: "COORDINADOR DE CUENTAS CORPORATIVAS", tipo: "MSO"},
+            {id: 116, nombre: "ROSANA MARQUINA", cargo: "COORDINADOR DE CUENTAS CORPORATIVAS", tipo: "MSO"},
+            {id: 117, nombre: "NANCY COTTONE", cargo: "ANALISTA DE CUENTAS DE INTERCONEXION", tipo: "MSO"},
+            {id: 118, nombre: "JUAN PEREZ", cargo: "GERENTE DE INTERCONEXION", tipo: "MSO"},
+            {id: 119, nombre: "OLGA GARCIA", cargo: "COORDINADOR DE NEGOCIOS DE INTERCONEXION", tipo: "MSO"},
+            {id: 120, nombre: "HELEN FERNANDEZ", cargo: "JEFE DE GESTION DE NEGOCIOS DE INTERCONEXION", tipo: "MSO"},
+            {id: 121, nombre: "LUIS CASTRO", cargo: "INGENIERO DE OPERACIONES", tipo: "MSO"},
+            {id: 122, nombre: "MARCO MOLINA", cargo: "INGENIERO DE OPERACIONES", tipo: "MSO"},
+            {id: 123, nombre: "JONATHAN SEGOVIA", cargo: "DIRECTOR CREATIVO Y DE ARTE", tipo: "MSO"},
+            {id: 124, nombre: "VICTORIA GUEVARA", cargo: "JEFE DE EVENTOS, PROMOCIONES Y TRADE MARKETING", tipo: "MSO"},
+            {id: 125, nombre: "ALEJANDRA BELLO", cargo: "DISEÑADOR GRAFICO", tipo: "MSO"},
+            {id: 126, nombre: "AUDREYTH BEDOYA", cargo: "JEFE DE MEDIOS DIGITALES", tipo: "MSO"},
+            {id: 127, nombre: "SARA MATOS", cargo: "COORDINADOR DE REDES SOCIALES", tipo: "MSO"},
+            {id: 128, nombre: "MARCO MARTINEZ", cargo: "GERENTE DE COMUNICACION AUDIOVISUAL", tipo: "MSO"},
+            {id: 129, nombre: "VANESSA COLLAHUAZO", cargo: "COORDINADOR DE PUBLICIDAD Y MEDIOS", tipo: "MSO"},
+            {id: 130, nombre: "YAMAIRI ACOSTA", cargo: "GERENTE DE GESTION DE IMPORTACIONES", tipo: "MSO"},
+            {id: 131, nombre: "MARIA ALFONSO", cargo: "GERENTE SENIOR DE INTELIGENCIA DE MERCADO Y PROYECTOS", tipo: "MSO"},
+            {id: 132, nombre: "FRANCISCO BETANCOURT", cargo: "GERENTE DE PLANTA EXTERNA", tipo: "MSO"},
+            {id: 133, nombre: "JOSÉ CARMONA", cargo: "SUPERVISOR DE MANTENIMIENTO DE FIBRA ÓPTICA", tipo: "MSO"},
+            {id: 134, nombre: "JACKSON AVENDAÑO", cargo: "TÉCNICO DE MANTENIMIENTO DE FIBRA ÓPTICA", tipo: "MSO"}
+        ];
+
+        // Función para obtener el aprobador según el departamento
+        function obtenerAprobador(departamento) {
+            const dept = departamento.toLowerCase();
+            
+            if (dept.includes('area tec') || dept.includes('obras')) {
+                return 'Joshua Carrero';
+            } else if (dept.includes('administracion') || dept.includes('rrhh') || dept.includes('sistemas') || dept.includes('comercial') || dept.includes('operaciones ip')) {
+                return 'Jorge Basualdo';
+            } else if (dept.includes('mso')) {
+                return 'Mario Fernandez';
+            } else {
+                return 'Por definir';
+            }
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarDatosIniciales();
+            cargarLugaresComida();
+            cargarLugaresTraslado();
+            inicializarSelect2();
+        });
+
+        // Función para inicializar Select2 en los campos de empleados
+        function inicializarSelect2() {
+            // Combinar empleados de CARACAS y MSO
+            const todosEmpleados = [
+                ...empleadosCARACAS.map(emp => ({
+                    id: emp.id,
+                    text: `${emp.nombre} - ${emp.cargo}`,
+                    tipo: emp.tipo,
+                    nombre: emp.nombre,
+                    cargo: emp.cargo
+                })),
+                ...empleadosMSO.map(emp => ({
+                    id: emp.id + 1000, // Añadir 1000 para evitar conflictos de ID
+                    text: `${emp.nombre} - ${emp.cargo}`,
+                    tipo: emp.tipo,
+                    nombre: emp.nombre,
+                    cargo: emp.cargo
+                }))
+            ];
+
+            // Inicializar Select2 para el campo de comidas (selección múltiple)
+            $('#empleadoComida').select2({
+                data: todosEmpleados,
+                placeholder: "Seleccione o escriba para buscar empleados...",
+                allowClear: true,
+                width: '100%',
+                multiple: true,
+                templateResult: formatEmpleado,
+                templateSelection: formatEmpleadoSeleccion
+            }).on('change', function() {
+                actualizarEmpleadosSeleccionados('comida');
+                calcularTotalComidas();
+            });
+
+            // Inicializar Select2 para el campo de traslados (selección múltiple)
+            $('#empleadoTraslado').select2({
+                data: todosEmpleados,
+                placeholder: "Seleccione o escriba para buscar empleados...",
+                allowClear: true,
+                width: '100%',
+                multiple: true,
+                templateResult: formatEmpleado,
+                templateSelection: formatEmpleadoSeleccion
+            }).on('change', function() {
+                actualizarEmpleadosSeleccionados('traslado');
+            });
+        }
+
+        // Función para actualizar la lista de empleados seleccionados
+        function actualizarEmpleadosSeleccionados(tipo) {
+            const selectId = tipo === 'comida' ? '#empleadoComida' : '#empleadoTraslado';
+            const listaId = tipo === 'comida' ? '#listaEmpleadosComida' : '#listaEmpleadosTraslado';
+            const contadorId = tipo === 'comida' ? '#totalEmpleadosComida' : '#totalEmpleadosTraslado';
+            const contenedorId = tipo === 'comida' ? '#empleadosSeleccionadosComida' : '#empleadosSeleccionadosTraslado';
+            
+            const empleadosSeleccionados = $(selectId).select2('data');
+            const lista = $(listaId);
+            const contenedor = $(contenedorId);
+            
+            lista.empty();
+            
+            if (empleadosSeleccionados.length > 0) {
+                empleadosSeleccionados.forEach(emp => {
+                    const badgeClass = emp.tipo === 'MSO' ? 'badge-mso' : 'badge-caracas';
+                    const badgeText = emp.tipo === 'MSO' ? 'MSO' : 'CARACAS';
+                    
+                    lista.append(`
+                        <li>
+                            <span class="badge ${badgeClass} me-2">${badgeText}</span>
+                            ${emp.nombre} - ${emp.cargo}
+                        </li>
+                    `);
+                });
+                
+                $(contadorId).text(empleadosSeleccionados.length);
+                contenedor.show();
+                
+                // Actualizar cantidad interna automáticamente solo para comidas
+                if (tipo === 'comida') {
+                    $('#cantidadInterno').val(empleadosSeleccionados.length);
+                }
+            } else {
+                contenedor.hide();
+                if (tipo === 'comida') {
+                    $('#cantidadInterno').val(0);
+                }
+            }
+        }
+
+        // Función para formatear cómo se muestran los empleados en Select2
+        function formatEmpleado(empleado) {
+            if (!empleado.id) {
+                return empleado.text;
+            }
+            
+            const tipo = empleado.tipo || 'CARACAS';
+            const badgeColor = tipo === 'MSO' ? 'warning' : 'primary';
+            
+            return $(
+                `<span><span class="badge bg-${badgeColor} me-2">${tipo}</span> ${empleado.text}</span>`
+            );
+        }
+
+        // Función para formatear cómo se muestra la selección
+        function formatEmpleadoSeleccion(empleado) {
+            if (!empleado.id) {
+                return empleado.text;
+            }
+            
+            return empleado.text;
+        }
+
+        // Función para mostrar/ocultar departamentos MSO
+        function toggleMSODepartments(tipo) {
+            const departamento = tipo === 'comida' 
+                ? document.getElementById('departamentoComida').value
+                : document.getElementById('departamentoTraslado').value;
+            
+            const sectionId = tipo === 'comida' 
+                ? 'msoDepartamentosComida'
+                : 'msoDepartamentosTraslado';
+            
+            const section = document.getElementById(sectionId);
+            
+            if (departamento === 'MSO') {
+                section.classList.add('show');
+            } else {
+                section.classList.remove('show');
+                // Limpiar checkboxes cuando se oculta
+                const checkboxes = section.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+            }
+        }
+
+        function mostrarLogin() {
+            document.getElementById('loginSystem').style.display = 'block';
+            document.getElementById('mainSystem').style.display = 'none';
+        }
+
+        function login() {
+            const user = document.getElementById('userSelect').value;
+            const password = document.getElementById('password').value;
+            
+            if (user && password === '123456') {
+                currentUser = user;
+                document.getElementById('loginSystem').style.display = 'none';
+                document.getElementById('mainSystem').style.display = 'block';
+                document.getElementById('currentUser').textContent = user === 'admin' ? 'Administrador' : 'Supervisor';
+                
+                // Si es supervisor, ocultar pestañas de historial
+                if (user === 'supervisor') {
+                    document.getElementById('historial-comidas-tab').style.display = 'none';
+                    document.getElementById('historial-traslados-tab').style.display = 'none';
+                } else {
+                    document.getElementById('historial-comidas-tab').style.display = 'block';
+                    document.getElementById('historial-traslados-tab').style.display = 'block';
+                }
+                
+                // Recargar datos desde localStorage al iniciar sesión
+                solicitudesComidas = JSON.parse(localStorage.getItem('solicitudesComidas')) || [];
+                solicitudesTraslados = JSON.parse(localStorage.getItem('solicitudesTraslados')) || [];
+                
+                // Cargar datos después de login
+                buscarComidas();
+                buscarTraslados();
+            } else {
+                alert('Usuario o contraseña incorrectos');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            mostrarLogin();
+        }
+
+        function calcularTotalComidas() {
+            const interno = parseInt($('#cantidadInterno').val()) || 0;
+            const externo = parseInt($('#cantidadExterno').val()) || 0;
+            const total = interno + externo;
+            $('#totalComidas').text(total);
+        }
+
+        function guardarComida() {
+            if (!validarFormulario('comidaForm')) return;
+            
+            const lugar = document.getElementById('lugarComida').value;
+            const empleadosSeleccionados = $('#empleadoComida').select2('data');
+            const nombreManualMSO = document.getElementById('nombreManualMSOComida').value;
+            const departamento = document.getElementById('departamentoComida').value;
+            
+            // Guardar lugar si no existe
+            if (lugar && !lugaresComida.includes(lugar)) {
+                lugaresComida.push(lugar);
+                localStorage.setItem('lugaresComida', JSON.stringify(lugaresComida));
+                cargarLugaresComida();
+            }
+            
+            // Obtener departamentos MSO seleccionados
+            const msoDepartamentos = [];
+            if (departamento === 'MSO') {
+                const checkboxes = document.querySelectorAll('#msoDepartamentosComida input[type="checkbox"]:checked');
+                checkboxes.forEach(checkbox => {
+                    msoDepartamentos.push(checkbox.value);
+                });
+            }
+            
+            const solicitud = {
+                id: Date.now(),
+                fecha: document.getElementById('fechaComida').value,
+                departamento: departamento,
+                msoDepartamentos: msoDepartamentos,
+                tipoComida: document.querySelector('input[name="tipoComida"]:checked').value,
+                lugar: lugar,
+                actividad: document.getElementById('actividadComida').value,
+                empleadosSeleccionados: empleadosSeleccionados.map(emp => ({
+                    id: emp.id,
+                    nombre: emp.nombre,
+                    cargo: emp.cargo,
+                    tipo: emp.tipo
+                })),
+                cantidadInterno: empleadosSeleccionados.length,
+                cantidadExterno: parseInt(document.getElementById('cantidadExterno').value),
+                totalComidas: empleadosSeleccionados.length + parseInt(document.getElementById('cantidadExterno').value),
+                nombreManualMSO: nombreManualMSO,
+                nombreSolicitante: document.getElementById('nombreComida').value,
+                departamentoSolicitante: document.getElementById('departamentoSolicitanteComida').value,
+                fechaSolicitud: document.getElementById('fechaSolicitudComida').value,
+                horaSolicitud: document.getElementById('horaSolicitudComida').value,
+                estado: 'pendiente',
+                fechaCreacion: new Date().toISOString(),
+                aprobadoPor: null
+            };
+            
+            solicitudesComidas.push(solicitud);
+            localStorage.setItem('solicitudesComidas', JSON.stringify(solicitudesComidas));
+            
+            alert('Solicitud de comida guardada exitosamente');
+            limpiarFormulario('comidaForm');
+            calcularTotalComidas();
+            buscarComidas();
+        }
+
+        function guardarTraslado() {
+            if (!validarFormulario('trasladoForm')) return;
+            
+            const origenIda = document.getElementById('origenIda').value;
+            const destinoIda = document.getElementById('destinoIda').value;
+            const origenVuelta = document.getElementById('origenVuelta').value;
+            const destinoVuelta = document.getElementById('destinoVuelta').value;
+            const empleadosSeleccionados = $('#empleadoTraslado').select2('data');
+            const nombreManualMSO = document.getElementById('nombreManualMSOTraslado').value;
+            const departamento = document.getElementById('departamentoTraslado').value;
+            
+            // Guardar lugares si no existen
+            [origenIda, destinoIda, origenVuelta, destinoVuelta].forEach(lugar => {
+                if (lugar && !lugaresTraslado.includes(lugar)) {
+                    lugaresTraslado.push(lugar);
+                }
+            });
+            localStorage.setItem('lugaresTraslado', JSON.stringify(lugaresTraslado));
+            cargarLugaresTraslado();
+            
+            // Obtener departamentos MSO seleccionados
+            const msoDepartamentos = [];
+            if (departamento === 'MSO') {
+                const checkboxes = document.querySelectorAll('#msoDepartamentosTraslado input[type="checkbox"]:checked');
+                checkboxes.forEach(checkbox => {
+                    msoDepartamentos.push(checkbox.value);
+                });
+            }
+            
+            const solicitud = {
+                id: Date.now(),
+                fecha: document.getElementById('fechaTraslado').value,
+                departamento: departamento,
+                msoDepartamentos: msoDepartamentos,
+                origenIda: origenIda,
+                destinoIda: destinoIda,
+                origenVuelta: origenVuelta,
+                destinoVuelta: destinoVuelta,
+                actividades: document.getElementById('actividadesTraslado').value,
+                empleadosSeleccionados: empleadosSeleccionados.map(emp => ({
+                    id: emp.id,
+                    nombre: emp.nombre,
+                    cargo: emp.cargo,
+                    tipo: emp.tipo
+                })),
+                nombreManualMSO: nombreManualMSO,
+                nombreSolicitante: document.getElementById('nombreTraslado').value,
+                departamentoSolicitante: document.getElementById('departamentoSolicitanteTraslado').value,
+                fechaSolicitud: document.getElementById('fechaSolicitudTraslado').value,
+                horaSolicitud: document.getElementById('horaSolicitudTraslado').value,
+                estado: 'pendiente',
+                fechaCreacion: new Date().toISOString(),
+                aprobadoPor: null
+            };
+            
+            solicitudesTraslados.push(solicitud);
+            localStorage.setItem('solicitudesTraslados', JSON.stringify(solicitudesTraslados));
+            
+            alert('Solicitud de traslado guardada exitosamente');
+            limpiarFormulario('trasladoForm');
+            buscarTraslados();
+        }
+
+        function cargarLugaresComida() {
+            const datalist = document.getElementById('lugaresComidaList');
+            datalist.innerHTML = '';
+            lugaresComida.forEach(lugar => {
+                const option = document.createElement('option');
+                option.value = lugar;
+                datalist.appendChild(option);
+            });
+        }
+
+        function cargarLugaresTraslado() {
+            const datalist = document.getElementById('lugaresTrasladoList');
+            datalist.innerHTML = '';
+            lugaresTraslado.forEach(lugar => {
+                const option = document.createElement('option');
+                option.value = lugar;
+                datalist.appendChild(option);
+            });
+        }
+
+        function validarFormulario(formId) {
+            const form = document.getElementById(formId);
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return false;
+            }
+            return true;
+        }
+
+        function limpiarFormulario(formId) {
+            document.getElementById(formId).reset();
+            calcularTotalComidas();
+            
+            // Limpiar Select2
+            if (formId === 'comidaForm') {
+                $('#empleadoComida').val(null).trigger('change');
+                $('#empleadosSeleccionadosComida').hide();
+                document.getElementById('msoDepartamentosComida').classList.remove('show');
+                const checkboxes = document.querySelectorAll('#msoDepartamentosComida input[type="checkbox"]');
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+            } else if (formId === 'trasladoForm') {
+                $('#empleadoTraslado').val(null).trigger('change');
+                $('#empleadosSeleccionadosTraslado').hide();
+                document.getElementById('msoDepartamentosTraslado').classList.remove('show');
+                const checkboxes = document.querySelectorAll('#msoDepartamentosTraslado input[type="checkbox"]');
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+            }
+        }
+
+        function generarPDFComida() {
+            if (!validarFormulario('comidaForm')) return;
+            
+            const departamento = document.getElementById('departamentoComida').value;
+            const aprobador = obtenerAprobador(departamento);
+            const empleadosSeleccionados = $('#empleadoComida').select2('data');
+            const nombreManualMSO = document.getElementById('nombreManualMSOComida').value;
+            
+            // Crear contenido para el PDF
+            const content = document.createElement('div');
+            content.style.width = '210mm';
+            content.style.padding = '20mm';
+            content.style.fontFamily = 'Arial, sans-serif';
+            content.style.backgroundColor = 'white';
+            
+            let empleadosHTML = '';
+            if (empleadosSeleccionados.length > 0) {
+                empleadosHTML = '<ul>';
+                empleadosSeleccionados.forEach(emp => {
+                    empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
+                });
+                empleadosHTML += '</ul>';
+            }
+            
+            if (nombreManualMSO) {
+                empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${nombreManualMSO}</p>`;
+            }
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+                    <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE COMIDAS</h1>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>FECHA:</strong> ${document.getElementById('fechaComida').value}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>DEPARTAMENTO:</strong> ${departamento}
+                </div>
+                
+                ${departamento === 'MSO' ? `
+                <div style="margin-bottom: 15px;">
+                    <strong>DEPARTAMENTOS MSO:</strong> ${getMSODepartamentosSeleccionados('comida')}
+                </div>
+                ` : ''}
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
+                    ${empleadosHTML || 'No se seleccionaron empleados'}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${empleadosSeleccionados.length}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>TIPO DE COMIDA:</strong> ${document.querySelector('input[name="tipoComida"]:checked').value}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>LUGAR:</strong> ${document.getElementById('lugarComida').value}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>ACTIVIDAD:</strong> ${document.getElementById('actividadComida').value}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>COMIDAS INTERNO:</strong> ${empleadosSeleccionados.length}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>COMIDAS EXTERNO:</strong> ${document.getElementById('cantidadExterno').value}
+                </div>
+                
+                <div style="margin-bottom: 20px; font-size: 18px; font-weight: bold;">
+                    <strong>TOTAL COMIDAS:</strong> ${empleadosSeleccionados.length + parseInt(document.getElementById('cantidadExterno').value || 0)}
+                </div>
+                
+                <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
+                    <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>NOMBRE:</strong> ${document.getElementById('nombreComida').value}
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>DEPARTAMENTO:</strong> ${document.getElementById('departamentoSolicitanteComida').value}
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>FECHA Y HORA:</strong> ${document.getElementById('fechaSolicitudComida').value} ${document.getElementById('horaSolicitudComida').value}
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
+                    <div style="margin-bottom: 40px;">
+                        <strong>APROBADO POR:</strong> ${aprobador}
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
+                    <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
+                </div>
+            `;
+            
+            // Generar PDF
+            generarPDF(content, 'Solicitud_Comida_' + new Date().toISOString().slice(0,10) + '_' + Date.now());
+        }
+
+        function generarPDFTraslado() {
+            if (!validarFormulario('trasladoForm')) return;
+            
+            const departamento = document.getElementById('departamentoTraslado').value;
+            const aprobador = obtenerAprobador(departamento);
+            const empleadosSeleccionados = $('#empleadoTraslado').select2('data');
+            const nombreManualMSO = document.getElementById('nombreManualMSOTraslado').value;
+            
+            // Crear contenido para el PDF
+            const content = document.createElement('div');
+            content.style.width = '210mm';
+            content.style.padding = '20mm';
+            content.style.fontFamily = 'Arial, sans-serif';
+            content.style.backgroundColor = 'white';
+            
+            let empleadosHTML = '';
+            if (empleadosSeleccionados.length > 0) {
+                empleadosHTML = '<ul>';
+                empleadosSeleccionados.forEach(emp => {
+                    empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
+                });
+                empleadosHTML += '</ul>';
+            }
+            
+            if (nombreManualMSO) {
+                empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${nombreManualMSO}</p>`;
+            }
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+                    <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE TRASLADOS</h1>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>FECHA:</strong> ${document.getElementById('fechaTraslado').value}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>DEPARTAMENTO:</strong> ${departamento}
+                </div>
+                
+                ${departamento === 'MSO' ? `
+                <div style="margin-bottom: 15px;">
+                    <strong>DEPARTAMENTOS MSO:</strong> ${getMSODepartamentosSeleccionados('traslado')}
+                </div>
+                ` : ''}
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
+                    ${empleadosHTML || 'No se seleccionaron empleados'}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${empleadosSeleccionados.length}
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 10px; font-size: 18px;">IDA</h3>
+                    <div style="margin-bottom: 5px;">
+                        <strong>LUGAR DE ORIGEN:</strong> ${document.getElementById('origenIda').value}
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <strong>LUGAR DE DESTINO:</strong> ${document.getElementById('destinoIda').value}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 10px; font-size: 18px;">VUELTA</h3>
+                    <div style="margin-bottom: 5px;">
+                        <strong>LUGAR DE ORIGEN:</strong> ${document.getElementById('origenVuelta').value}
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <strong>LUGAR DE DESTINO:</strong> ${document.getElementById('destinoVuelta').value}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>ACTIVIDADES A REALIZAR:</strong> ${document.getElementById('actividadesTraslado').value}
+                </div>
+                
+                <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
+                    <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>NOMBRE:</strong> ${document.getElementById('nombreTraslado').value}
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>DEPARTAMENTO:</strong> ${document.getElementById('departamentoSolicitanteTraslado').value}
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>FECHA Y HORA DEL TRASLADO:</strong> ${document.getElementById('fechaSolicitudTraslado').value} ${document.getElementById('horaSolicitudTraslado').value}
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
+                    <div style="margin-bottom: 40px;">
+                        <strong>APROBADO POR:</strong> ${aprobador}
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
+                    <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
+                </div>
+            `;
+            
+            // Generar PDF
+            generarPDF(content, 'Solicitud_Traslado_' + new Date().toISOString().slice(0,10) + '_' + Date.now());
+        }
+
+        function getMSODepartamentosSeleccionados(tipo) {
+            const sectionId = tipo === 'comida' ? 'msoDepartamentosComida' : 'msoDepartamentosTraslado';
+            const checkboxes = document.querySelectorAll(`#${sectionId} input[type="checkbox"]:checked`);
+            const departamentos = Array.from(checkboxes).map(cb => cb.value);
+            return departamentos.join(', ') || 'Ninguno seleccionado';
+        }
+
+        function generarPDF(contentElement, filename) {
+            // Crear un div temporal para renderizar el contenido
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.width = '210mm';
+            tempDiv.appendChild(contentElement);
+            document.body.appendChild(tempDiv);
+            
+            // Usar html2canvas para convertir el HTML a imagen
+            html2canvas(contentElement, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                width: contentElement.offsetWidth,
+                height: contentElement.offsetHeight,
+                windowWidth: contentElement.offsetWidth,
+                windowHeight: contentElement.offsetHeight
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new window.jspdf.jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                const imgWidth = 210; // Ancho A4 en mm
+                const pageHeight = 297; // Alto A4 en mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                // Agregar la imagen al PDF
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                // Agregar páginas adicionales si es necesario
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                // Descargar el PDF
+                pdf.save(filename + '.pdf');
+                
+                // Limpiar el div temporal
+                document.body.removeChild(tempDiv);
+                
+                alert('PDF generado y descargado exitosamente');
+            }).catch(error => {
+                console.error('Error al generar PDF:', error);
+                alert('Error al generar el PDF. Por favor, intente nuevamente.');
+                // Limpiar el div temporal en caso de error
+                if (tempDiv.parentNode) {
+                    document.body.removeChild(tempDiv);
+                }
+            });
+        }
+
+        function cargarDatosIniciales() {
+            calcularTotalComidas();
+            
+            // Establecer fecha actual por defecto
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaComida').value = today;
+            document.getElementById('fechaSolicitudComida').value = today;
+            document.getElementById('fechaTraslado').value = today;
+            document.getElementById('fechaSolicitudTraslado').value = today;
+            
+            // Establecer hora actual por defecto
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
+                             now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('horaSolicitudComida').value = timeString;
+            document.getElementById('horaSolicitudTraslado').value = timeString;
+            
+            // Establecer mes actual en los campos de reporte mensual
+            const currentMonth = new Date().toISOString().slice(0, 7);
+            document.getElementById('mesReporteComida').value = currentMonth;
+            document.getElementById('mesReporteTraslado').value = currentMonth;
+        }
+
+        // FUNCIONES DE BÚSQUEDA PARA COMIDAS
+        function buscarComidas(pagina = 1) {
+            paginaActualComidas = pagina;
+            
+            const searchNombre = document.getElementById('searchNombreComida').value.toLowerCase();
+            const searchDepartamento = document.getElementById('searchDepartamentoComida').value;
+            const searchLugar = document.getElementById('searchLugarComida').value.toLowerCase();
+            const searchFechaDesde = document.getElementById('searchFechaDesdeComida').value;
+            const searchFechaHasta = document.getElementById('searchFechaHastaComida').value;
+            const searchEstado = document.getElementById('searchEstadoComida').value;
+            const itemsPorPagina = parseInt(document.getElementById('itemsPorPaginaComida').value);
+            
+            let filtered = solicitudesComidas;
+            
+            // Aplicar filtros
+            if (searchNombre) {
+                filtered = filtered.filter(s => 
+                    s.nombreSolicitante.toLowerCase().includes(searchNombre) ||
+                    s.empleadosSeleccionados.some(emp => 
+                        emp.nombre.toLowerCase().includes(searchNombre)
+                    ) ||
+                    (s.nombreManualMSO && s.nombreManualMSO.toLowerCase().includes(searchNombre))
+                );
+            }
+            
+            if (searchDepartamento) {
+                filtered = filtered.filter(s => s.departamento === searchDepartamento);
+            }
+            
+            if (searchLugar) {
+                filtered = filtered.filter(s => 
+                    s.lugar.toLowerCase().includes(searchLugar)
+                );
+            }
+            
+            if (searchFechaDesde) {
+                filtered = filtered.filter(s => s.fecha >= searchFechaDesde);
+            }
+            
+            if (searchFechaHasta) {
+                filtered = filtered.filter(s => s.fecha <= searchFechaHasta);
+            }
+            
+            if (searchEstado) {
+                filtered = filtered.filter(s => s.estado === searchEstado);
+            }
+            
+            // Ordenar por fecha más reciente primero
+            filtered.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+            
+            // Calcular paginación
+            const totalItems = filtered.length;
+            const totalPaginas = Math.ceil(totalItems / itemsPorPagina);
+            const inicio = (pagina - 1) * itemsPorPagina;
+            const fin = inicio + itemsPorPagina;
+            const itemsPagina = filtered.slice(inicio, fin);
+            
+            // Actualizar tabla
+            const tbody = document.getElementById('historialComidasBody');
+            tbody.innerHTML = '';
+            
+            itemsPagina.forEach(solicitud => {
+                const totalEmpleados = solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0;
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${solicitud.fecha}</td>
+                    <td>${solicitud.nombreSolicitante}</td>
+                    <td>${solicitud.departamento}</td>
+                    <td>${solicitud.tipoComida}</td>
+                    <td>${solicitud.lugar}</td>
+                    <td>${solicitud.totalComidas} (${totalEmpleados} int + ${solicitud.cantidadExterno} ext)</td>
+                    <td><span class="status-badge status-${solicitud.estado}">${solicitud.estado.toUpperCase()}</span></td>
+                    <td class="table-actions text-center">
+                        ${currentUser === 'admin' && solicitud.estado === 'pendiente' ? 
+                            `<button class="btn btn-sm btn-success me-1" onclick="abrirAutorizacion(${solicitud.id}, 'comida')">
+                                <i class="bi bi-check"></i>
+                            </button>` : ''}
+                        <button class="btn btn-sm btn-warning me-1" onclick="editarSolicitud(${solicitud.id}, 'comida')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger me-1" onclick="eliminarSolicitud(${solicitud.id}, 'comida')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="descargarPDFHistorial(${solicitud.id}, 'comida')">
+                            <i class="bi bi-download"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Actualizar información de resultados
+            document.getElementById('resultadosComida').innerHTML = 
+                `Mostrando ${inicio + 1}-${Math.min(fin, totalItems)} de ${totalItems} solicitudes`;
+            
+            // Generar paginación
+            generarPaginacion('paginacionComida', pagina, totalPaginas, buscarComidas);
+        }
+        
+        function limpiarBusquedaComidas() {
+            document.getElementById('searchNombreComida').value = '';
+            document.getElementById('searchDepartamentoComida').value = '';
+            document.getElementById('searchLugarComida').value = '';
+            document.getElementById('searchFechaDesdeComida').value = '';
+            document.getElementById('searchFechaHastaComida').value = '';
+            document.getElementById('searchEstadoComida').value = '';
+            buscarComidas(1);
+        }
+        
+        // FUNCIONES DE BÚSQUEDA PARA TRASLADOS
+        function buscarTraslados(pagina = 1) {
+            paginaActualTraslados = pagina;
+            
+            const searchNombre = document.getElementById('searchNombreTraslado').value.toLowerCase();
+            const searchDepartamento = document.getElementById('searchDepartamentoTraslado').value;
+            const searchUbicacion = document.getElementById('searchUbicacionTraslado').value.toLowerCase();
+            const searchFechaDesde = document.getElementById('searchFechaDesdeTraslado').value;
+            const searchFechaHasta = document.getElementById('searchFechaHastaTraslado').value;
+            const searchEstado = document.getElementById('searchEstadoTraslado').value;
+            const itemsPorPagina = parseInt(document.getElementById('itemsPorPaginaTraslado').value);
+            
+            let filtered = solicitudesTraslados;
+            
+            // Aplicar filtros
+            if (searchNombre) {
+                filtered = filtered.filter(s => 
+                    s.nombreSolicitante.toLowerCase().includes(searchNombre) ||
+                    s.empleadosSeleccionados.some(emp => 
+                        emp.nombre.toLowerCase().includes(searchNombre)
+                    ) ||
+                    (s.nombreManualMSO && s.nombreManualMSO.toLowerCase().includes(searchNombre))
+                );
+            }
+            
+            if (searchDepartamento) {
+                filtered = filtered.filter(s => s.departamento === searchDepartamento);
+            }
+            
+            if (searchUbicacion) {
+                filtered = filtered.filter(s => 
+                    s.origenIda.toLowerCase().includes(searchUbicacion) ||
+                    s.destinoIda.toLowerCase().includes(searchUbicacion) ||
+                    (s.origenVuelta && s.origenVuelta.toLowerCase().includes(searchUbicacion)) ||
+                    (s.destinoVuelta && s.destinoVuelta.toLowerCase().includes(searchUbicacion))
+                );
+            }
+            
+            if (searchFechaDesde) {
+                filtered = filtered.filter(s => s.fecha >= searchFechaDesde);
+            }
+            
+            if (searchFechaHasta) {
+                filtered = filtered.filter(s => s.fecha <= searchFechaHasta);
+            }
+            
+            if (searchEstado) {
+                filtered = filtered.filter(s => s.estado === searchEstado);
+            }
+            
+            // Ordenar por fecha más reciente primero
+            filtered.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+            
+            // Calcular paginación
+            const totalItems = filtered.length;
+            const totalPaginas = Math.ceil(totalItems / itemsPorPagina);
+            const inicio = (pagina - 1) * itemsPorPagina;
+            const fin = inicio + itemsPorPagina;
+            const itemsPagina = filtered.slice(inicio, fin);
+            
+            // Actualizar tabla
+            const tbody = document.getElementById('historialTrasladosBody');
+            tbody.innerHTML = '';
+            
+            itemsPagina.forEach(solicitud => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${solicitud.fecha}</td>
+                    <td>${solicitud.nombreSolicitante}</td>
+                    <td>${solicitud.departamento}</td>
+                    <td>${solicitud.origenIda}</td>
+                    <td>${solicitud.destinoIda}</td>
+                    <td><span class="status-badge status-${solicitud.estado}">${solicitud.estado.toUpperCase()}</span></td>
+                    <td class="table-actions text-center">
+                        ${currentUser === 'admin' && solicitud.estado === 'pendiente' ? 
+                            `<button class="btn btn-sm btn-success me-1" onclick="abrirAutorizacion(${solicitud.id}, 'traslado')">
+                                <i class="bi bi-check"></i>
+                            </button>` : ''}
+                        <button class="btn btn-sm btn-warning me-1" onclick="editarSolicitud(${solicitud.id}, 'traslado')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger me-1" onclick="eliminarSolicitud(${solicitud.id}, 'traslado')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="descargarPDFHistorial(${solicitud.id}, 'traslado')">
+                            <i class="bi bi-download"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Actualizar información de resultados
+            document.getElementById('resultadosTraslado').innerHTML = 
+                `Mostrando ${inicio + 1}-${Math.min(fin, totalItems)} de ${totalItems} solicitudes`;
+            
+            // Generar paginación
+            generarPaginacion('paginacionTraslado', pagina, totalPaginas, buscarTraslados);
+        }
+        
+        function limpiarBusquedaTraslados() {
+            document.getElementById('searchNombreTraslado').value = '';
+            document.getElementById('searchDepartamentoTraslado').value = '';
+            document.getElementById('searchUbicacionTraslado').value = '';
+            document.getElementById('searchFechaDesdeTraslado').value = '';
+            document.getElementById('searchFechaHastaTraslado').value = '';
+            document.getElementById('searchEstadoTraslado').value = '';
+            buscarTraslados(1);
+        }
+        
+        // FUNCIÓN PARA GENERAR PAGINACIÓN
+        function generarPaginacion(elementId, paginaActual, totalPaginas, funcionBusqueda) {
+            const nav = document.getElementById(elementId);
+            
+            if (totalPaginas <= 1) {
+                nav.innerHTML = '';
+                return;
+            }
+            
+            let paginacionHTML = `
+                <ul class="pagination justify-content-center">
+            `;
+            
+            // Botón anterior
+            if (paginaActual > 1) {
+                paginacionHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" onclick="${funcionBusqueda.name}(${paginaActual - 1}); return false;">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                `;
+            }
+            
+            // Números de página
+            const inicio = Math.max(1, paginaActual - 2);
+            const fin = Math.min(totalPaginas, paginaActual + 2);
+            
+            for (let i = inicio; i <= fin; i++) {
+                if (i === paginaActual) {
+                    paginacionHTML += `
+                        <li class="page-item active">
+                            <span class="page-link">${i}</span>
+                        </li>
+                    `;
+                } else {
+                    paginacionHTML += `
+                        <li class="page-item">
+                            <a class="page-link" href="#" onclick="${funcionBusqueda.name}(${i}); return false;">${i}</a>
+                        </li>
+                    `;
+                }
+            }
+            
+            // Botón siguiente
+            if (paginaActual < totalPaginas) {
+                paginacionHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" onclick="${funcionBusqueda.name}(${paginaActual + 1}); return false;">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                `;
+            }
+            
+            paginacionHTML += `</ul>`;
+            nav.innerHTML = paginacionHTML;
+        }
+
+        function abrirAutorizacion(id, type) {
+            currentSolicitudId = id;
+            currentSolicitudType = type;
+            
+            const modal = new bootstrap.Modal(document.getElementById('authModal'));
+            document.getElementById('modalText').textContent = 
+                `¿Desea autorizar esta solicitud de ${type === 'comida' ? 'comida' : 'traslado'}?`;
+            document.getElementById('jefeNombre').value = '';
+            modal.show();
+        }
+
+        function aprobarSolicitud() {
+            const nombre = document.getElementById('jefeNombre').value;
+            
+            if (!nombre) {
+                alert('Por favor complete el nombre y apellido del jefe');
+                return;
+            }
+            
+            if (currentSolicitudType === 'comida') {
+                const index = solicitudesComidas.findIndex(s => s.id === currentSolicitudId);
+                if (index !== -1) {
+                    solicitudesComidas[index].estado = 'aprobado';
+                    solicitudesComidas[index].aprobadoPor = nombre;
+                    localStorage.setItem('solicitudesComidas', JSON.stringify(solicitudesComidas));
+                    buscarComidas(paginaActualComidas);
+                }
+            } else {
+                const index = solicitudesTraslados.findIndex(s => s.id === currentSolicitudId);
+                if (index !== -1) {
+                    solicitudesTraslados[index].estado = 'aprobado';
+                    solicitudesTraslados[index].aprobadoPor = nombre;
+                    localStorage.setItem('solicitudesTraslados', JSON.stringify(solicitudesTraslados));
+                    buscarTraslados(paginaActualTraslados);
+                }
+            }
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
+            modal.hide();
+            
+            alert('Solicitud aprobada exitosamente');
+        }
+
+        function editarSolicitud(id, type) {
+            currentSolicitudId = id;
+            currentSolicitudType = type;
+            
+            let solicitud;
+            if (type === 'comida') {
+                solicitud = solicitudesComidas.find(s => s.id === id);
+            } else {
+                solicitud = solicitudesTraslados.find(s => s.id === id);
+            }
+            
+            if (!solicitud) return;
+            
+            let formHTML = '';
+            if (type === 'comida') {
+                formHTML = `
+                    <form onsubmit="guardarEdicion(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Departamento</label>
+                            <select class="form-select" id="editDepartamento">
+                                <option value="Administracion" ${solicitud.departamento === 'Administracion' ? 'selected' : ''}>Administracion</option>
+                                <option value="Area tec" ${solicitud.departamento === 'Area tec' ? 'selected' : ''}>Area tec</option>
+                                <option value="Obras" ${solicitud.departamento === 'Obras' ? 'selected' : ''}>Obras</option>
+                                <option value="Comercial" ${solicitud.departamento === 'Comercial' ? 'selected' : ''}>Comercial</option>
+                                <option value="RRHH y SL" ${solicitud.departamento === 'RRHH y SL' ? 'selected' : ''}>RRHH y SL</option>
+                                <option value="Sistemas" ${solicitud.departamento === 'Sistemas' ? 'selected' : ''}>Sistemas</option>
+                                <option value="MSO" ${solicitud.departamento === 'MSO' ? 'selected' : ''}>MSO</option>
+                                <option value="Operaciones IP" ${solicitud.departamento === 'Operaciones IP' ? 'selected' : ''}>Operaciones IP</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cantidad Externo</label>
+                            <input type="number" class="form-control" id="editCantidadExterno" value="${solicitud.cantidadExterno}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Actividad</label>
+                            <textarea class="form-control" id="editActividad">${solicitud.actividad}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </form>
+                `;
+            } else {
+                formHTML = `
+                    <form onsubmit="guardarEdicion(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Departamento</label>
+                            <select class="form-select" id="editDepartamento">
+                                <option value="Administracion" ${solicitud.departamento === 'Administracion' ? 'selected' : ''}>Administracion</option>
+                                <option value="Area tec" ${solicitud.departamento === 'Area tec' ? 'selected' : ''}>Area tec</option>
+                                <option value="Obras" ${solicitud.departamento === 'Obras' ? 'selected' : ''}>Obras</option>
+                                <option value="Comercial" ${solicitud.departamento === 'Comercial' ? 'selected' : ''}>Comercial</option>
+                                <option value="RRHH y SL" ${solicitud.departamento === 'RRHH y SL' ? 'selected' : ''}>RRHH y SL</option>
+                                <option value="Sistemas" ${solicitud.departamento === 'Sistemas' ? 'selected' : ''}>Sistemas</option>
+                                <option value="MSO" ${solicitud.departamento === 'MSO' ? 'selected' : ''}>MSO</option>
+                                <option value="Operaciones IP" ${solicitud.departamento === 'Operaciones IP' ? 'selected' : ''}>Operaciones IP</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Actividades</label>
+                            <textarea class="form-control" id="editActividades">${solicitud.actividades}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </form>
+                `;
+            }
+            
+            document.getElementById('editModalBody').innerHTML = formHTML;
+            const modal = new bootstrap.Modal(document.getElementById('editModal'));
+            modal.show();
+        }
+
+        function guardarEdicion(event) {
+            event.preventDefault();
+            
+            if (currentSolicitudType === 'comida') {
+                const index = solicitudesComidas.findIndex(s => s.id === currentSolicitudId);
+                if (index !== -1) {
+                    solicitudesComidas[index].departamento = document.getElementById('editDepartamento').value;
+                    solicitudesComidas[index].cantidadExterno = parseInt(document.getElementById('editCantidadExterno').value);
+                    solicitudesComidas[index].actividad = document.getElementById('editActividad').value;
+                    solicitudesComidas[index].totalComidas = solicitudesComidas[index].empleadosSeleccionados.length + solicitudesComidas[index].cantidadExterno;
+                    localStorage.setItem('solicitudesComidas', JSON.stringify(solicitudesComidas));
+                }
+            } else {
+                const index = solicitudesTraslados.findIndex(s => s.id === currentSolicitudId);
+                if (index !== -1) {
+                    solicitudesTraslados[index].departamento = document.getElementById('editDepartamento').value;
+                    solicitudesTraslados[index].actividades = document.getElementById('editActividades').value;
+                    localStorage.setItem('solicitudesTraslados', JSON.stringify(solicitudesTraslados));
+                }
+            }
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+            modal.hide();
+            
+            buscarComidas(paginaActualComidas);
+            buscarTraslados(paginaActualTraslados);
+            alert('Cambios guardados exitosamente');
+        }
+
+        function eliminarSolicitud(id, type) {
+            if (!confirm('¿Está seguro de eliminar esta solicitud?')) return;
+            
+            if (type === 'comida') {
+                solicitudesComidas = solicitudesComidas.filter(s => s.id !== id);
+                localStorage.setItem('solicitudesComidas', JSON.stringify(solicitudesComidas));
+                buscarComidas(paginaActualComidas);
+            } else {
+                solicitudesTraslados = solicitudesTraslados.filter(s => s.id !== id);
+                localStorage.setItem('solicitudesTraslados', JSON.stringify(solicitudesTraslados));
+                buscarTraslados(paginaActualTraslados);
+            }
+            
+            alert('Solicitud eliminada exitosamente');
+        }
+
+        function descargarPDFHistorial(id, type) {
+            let solicitud;
+            if (type === 'comida') {
+                solicitud = solicitudesComidas.find(s => s.id === id);
+                if (!solicitud) return;
+                
+                const aprobador = obtenerAprobador(solicitud.departamento);
+                
+                let empleadosHTML = '';
+                if (solicitud.empleadosSeleccionados && solicitud.empleadosSeleccionados.length > 0) {
+                    empleadosHTML = '<ul>';
+                    solicitud.empleadosSeleccionados.forEach(emp => {
+                        empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
+                    });
+                    empleadosHTML += '</ul>';
+                }
+                
+                if (solicitud.nombreManualMSO) {
+                    empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${solicitud.nombreManualMSO}</p>`;
+                }
+                
+                const content = document.createElement('div');
+                content.style.width = '210mm';
+                content.style.padding = '20mm';
+                content.style.fontFamily = 'Arial, sans-serif';
+                content.style.backgroundColor = 'white';
+                
+                content.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+                        <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE COMIDAS</h1>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>FECHA:</strong> ${solicitud.fecha}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>DEPARTAMENTO:</strong> ${solicitud.departamento}
+                    </div>
+                    
+                    ${solicitud.departamento === 'MSO' && solicitud.msoDepartamentos.length > 0 ? `
+                    <div style="margin-bottom: 15px;">
+                        <strong>DEPARTAMENTOS MSO:</strong> ${solicitud.msoDepartamentos.join(', ')}
+                    </div>
+                    ` : ''}
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
+                        ${empleadosHTML || 'No se seleccionaron empleados'}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>TIPO DE COMIDA:</strong> ${solicitud.tipoComida}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>LUGAR:</strong> ${solicitud.lugar}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>ACTIVIDAD:</strong> ${solicitud.actividad}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>COMIDAS INTERNO:</strong> ${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>COMIDAS EXTERNO:</strong> ${solicitud.cantidadExterno}
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; font-size: 18px; font-weight: bold;">
+                        <strong>TOTAL COMIDAS:</strong> ${solicitud.totalComidas}
+                    </div>
+                    
+                    <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
+                        <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <strong>NOMBRE:</strong> ${solicitud.nombreSolicitante}
+                        </div>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <strong>DEPARTAMENTO:</strong> ${solicitud.departamentoSolicitante}
+                        </div>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <strong>FECHA Y HORA:</strong> ${solicitud.fechaSolicitud} ${solicitud.horaSolicitud}
+                        </div>
+                    </div>
+                    
+                    <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
+                        <div style="margin-bottom: 40px;">
+                            <strong>APROBADO POR:</strong> ${solicitud.aprobadoPor || aprobador}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
+                        <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
+                    </div>
+                `;
+                
+                generarPDF(content, 'Solicitud_Comida_' + solicitud.id + '_' + solicitud.fecha);
+            } else {
+                solicitud = solicitudesTraslados.find(s => s.id === id);
+                if (!solicitud) return;
+                
+                const aprobador = obtenerAprobador(solicitud.departamento);
+                
+                let empleadosHTML = '';
+                if (solicitud.empleadosSeleccionados && solicitud.empleadosSeleccionados.length > 0) {
+                    empleadosHTML = '<ul>';
+                    solicitud.empleadosSeleccionados.forEach(emp => {
+                        empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
+                    });
+                    empleadosHTML += '</ul>';
+                }
+                
+                if (solicitud.nombreManualMSO) {
+                    empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${solicitud.nombreManualMSO}</p>`;
+                }
+                
+                const content = document.createElement('div');
+                content.style.width = '210mm';
+                content.style.padding = '20mm';
+                content.style.fontFamily = 'Arial, sans-serif';
+                content.style.backgroundColor = 'white';
+                
+                content.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+                        <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE TRASLADOS</h1>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>FECHA:</strong> ${solicitud.fecha}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>DEPARTAMENTO:</strong> ${solicitud.departamento}
+                    </div>
+                    
+                    ${solicitud.departamento === 'MSO' && solicitud.msoDepartamentos.length > 0 ? `
+                    <div style="margin-bottom: 15px;">
+                        <strong>DEPARTAMENTOS MSO:</strong> ${solicitud.msoDepartamentos.join(', ')}
+                    </div>
+                    ` : ''}
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
+                        ${empleadosHTML || 'No se seleccionaron empleados'}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 10px; font-size: 18px;">IDA</h3>
+                        <div style="margin-bottom: 5px;">
+                            <strong>LUGAR DE ORIGEN:</strong> ${solicitud.origenIda}
+                        </div>
+                        <div style="margin-bottom: 5px;">
+                            <strong>LUGAR DE DESTINO:</strong> ${solicitud.destinoIda}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 10px; font-size: 18px;">VUELTA</h3>
+                        <div style="margin-bottom: 5px;">
+                            <strong>LUGAR DE ORIGEN:</strong> ${solicitud.origenVuelta || ''}
+                        </div>
+                        <div style="margin-bottom: 5px;">
+                            <strong>LUGAR DE DESTINO:</strong> ${solicitud.destinoVuelta || ''}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>ACTIVIDADES A REALIZAR:</strong> ${solicitud.actividades}
+                    </div>
+                    
+                    <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
+                        <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <strong>NOMBRE:</strong> ${solicitud.nombreSolicitante}
+                        </div>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <strong>DEPARTAMENTO:</strong> ${solicitud.departamentoSolicitante}
+                        </div>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <strong>FECHA Y HORA DEL TRASLADO:</strong> ${solicitud.fechaSolicitud} ${solicitud.horaSolicitud}
+                        </div>
+                    </div>
+                    
+                    <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
+                        <div style="margin-bottom: 40px;">
+                            <strong>APROBADO POR:</strong> ${solicitud.aprobadoPor || aprobador}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
+                        <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
+                    </div>
+                `;
+                
+                generarPDF(content, 'Solicitud_Traslado_' + solicitud.id + '_' + solicitud.fecha);
+            }
+        }
+
+        // NUEVAS FUNCIONALIDADES AÑADIDAS
+
+        // Función para mostrar/ocultar la sección de reporte mensual de comidas
+        function mostrarReporteMensualComidas() {
+            const seccion = document.getElementById('reporteMensualComidas');
+            seccion.style.display = seccion.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Función para mostrar/ocultar la sección de reporte mensual de traslados
+        function mostrarReporteMensualTraslados() {
+            const seccion = document.getElementById('reporteMensualTraslados');
+            seccion.style.display = seccion.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Función para obtener datos filtrados actuales (comidas)
+        function obtenerDatosFiltradosComidas() {
+            const searchNombre = document.getElementById('searchNombreComida').value.toLowerCase();
+            const searchDepartamento = document.getElementById('searchDepartamentoComida').value;
+            const searchLugar = document.getElementById('searchLugarComida').value.toLowerCase();
+            const searchFechaDesde = document.getElementById('searchFechaDesdeComida').value;
+            const searchFechaHasta = document.getElementById('searchFechaHastaComida').value;
+            const searchEstado = document.getElementById('searchEstadoComida').value;
+            
+            let filtered = solicitudesComidas;
+            
+            // Aplicar filtros
+            if (searchNombre) {
+                filtered = filtered.filter(s => 
+                    s.nombreSolicitante.toLowerCase().includes(searchNombre) ||
+                    s.empleadosSeleccionados.some(emp => 
+                        emp.nombre.toLowerCase().includes(searchNombre)
+                    ) ||
+                    (s.nombreManualMSO && s.nombreManualMSO.toLowerCase().includes(searchNombre))
+                );
+            }
+            
+            if (searchDepartamento) {
+                filtered = filtered.filter(s => s.departamento === searchDepartamento);
+            }
+            
+            if (searchLugar) {
+                filtered = filtered.filter(s => 
+                    s.lugar.toLowerCase().includes(searchLugar)
+                );
+            }
+            
+            if (searchFechaDesde) {
+                filtered = filtered.filter(s => s.fecha >= searchFechaDesde);
+            }
+            
+            if (searchFechaHasta) {
+                filtered = filtered.filter(s => s.fecha <= searchFechaHasta);
+            }
+            
+            if (searchEstado) {
+                filtered = filtered.filter(s => s.estado === searchEstado);
+            }
+            
+            return filtered;
+        }
+
+        // Función para obtener datos filtrados actuales (traslados)
+        function obtenerDatosFiltradosTraslados() {
+            const searchNombre = document.getElementById('searchNombreTraslado').value.toLowerCase();
+            const searchDepartamento = document.getElementById('searchDepartamentoTraslado').value;
+            const searchUbicacion = document.getElementById('searchUbicacionTraslado').value.toLowerCase();
+            const searchFechaDesde = document.getElementById('searchFechaDesdeTraslado').value;
+            const searchFechaHasta = document.getElementById('searchFechaHastaTraslado').value;
+            const searchEstado = document.getElementById('searchEstadoTraslado').value;
+            
+            let filtered = solicitudesTraslados;
+            
+            // Aplicar filtros
+            if (searchNombre) {
+                filtered = filtered.filter(s => 
+                    s.nombreSolicitante.toLowerCase().includes(searchNombre) ||
+                    s.empleadosSeleccionados.some(emp => 
+                        emp.nombre.toLowerCase().includes(searchNombre)
+                    ) ||
+                    (s.nombreManualMSO && s.nombreManualMSO.toLowerCase().includes(searchNombre))
+                );
+            }
+            
+            if (searchDepartamento) {
+                filtered = filtered.filter(s => s.departamento === searchDepartamento);
+            }
+            
+            if (searchUbicacion) {
+                filtered = filtered.filter(s => 
+                    s.origenIda.toLowerCase().includes(searchUbicacion) ||
+                    s.destinoIda.toLowerCase().includes(searchUbicacion) ||
+                    (s.origenVuelta && s.origenVuelta.toLowerCase().includes(searchUbicacion)) ||
+                    (s.destinoVuelta && s.destinoVuelta.toLowerCase().includes(searchUbicacion))
+                );
+            }
+            
+            if (searchFechaDesde) {
+                filtered = filtered.filter(s => s.fecha >= searchFechaDesde);
+            }
+            
+            if (searchFechaHasta) {
+                filtered = filtered.filter(s => s.fecha <= searchFechaHasta);
+            }
+            
+            if (searchEstado) {
+                filtered = filtered.filter(s => s.estado === searchEstado);
+            }
+            
+            return filtered;
+        }
+
+        // Función para exportar el filtro actual a PDF (comidas)
+        function exportarPDFFiltroComidas() {
+            const datosFiltrados = obtenerDatosFiltradosComidas();
+            
+            if (datosFiltrados.length === 0) {
+                alert('No hay datos para exportar con los filtros actuales');
+                return;
+            }
+            
+            const tipoReporte = 'detallado'; // Siempre detallado para filtro actual
+            generarReportePDFComidas(datosFiltrados, tipoReporte, 'Filtro_Actual_Comidas');
+        }
+
+        // Función para exportar el filtro actual a PDF (traslados)
+        function exportarPDFFiltroTraslados() {
+            const datosFiltrados = obtenerDatosFiltradosTraslados();
+            
+            if (datosFiltrados.length === 0) {
+                alert('No hay datos para exportar con los filtros actuales');
+                return;
+            }
+            
+            const tipoReporte = 'detallado'; // Siempre detallado para filtro actual
+            generarReportePDFTraslados(datosFiltrados, tipoReporte, 'Filtro_Actual_Traslados');
+        }
+
+        // Función para generar reporte mensual (comidas)
+        function generarReporteMensualComidas() {
+            const mesSeleccionado = document.getElementById('mesReporteComida').value;
+            const tipoReporte = document.getElementById('tipoReporteComida').value;
+            
+            if (!mesSeleccionado) {
+                alert('Por favor seleccione un mes');
+                return;
+            }
+            
+            // Filtrar datos por mes seleccionado
+            const datosFiltrados = solicitudesComidas.filter(solicitud => {
+                const fecha = new Date(solicitud.fecha);
+                const mesSolicitud = fecha.getFullYear() + '-' + 
+                                   String(fecha.getMonth() + 1).padStart(2, '0');
+                return mesSolicitud === mesSeleccionado;
+            });
+            
+            if (datosFiltrados.length === 0) {
+                alert('No hay datos para el mes seleccionado');
+                return;
+            }
+            
+            generarReportePDFComidas(datosFiltrados, tipoReporte, `Reporte_Mensual_Comidas_${mesSeleccionado}`);
+        }
+
+        // Función para generar reporte mensual (traslados)
+        function generarReporteMensualTraslados() {
+            const mesSeleccionado = document.getElementById('mesReporteTraslado').value;
+            const tipoReporte = document.getElementById('tipoReporteTraslado').value;
+            
+            if (!mesSeleccionado) {
+                alert('Por favor seleccione un mes');
+                return;
+            }
+            
+            // Filtrar datos por mes seleccionado
+            const datosFiltrados = solicitudesTraslados.filter(solicitud => {
+                const fecha = new Date(solicitud.fecha);
+                const mesSolicitud = fecha.getFullYear() + '-' + 
+                                   String(fecha.getMonth() + 1).padStart(2, '0');
+                return mesSolicitud === mesSeleccionado;
+            });
+            
+            if (datosFiltrados.length === 0) {
+                alert('No hay datos para el mes seleccionado');
+                return;
+            }
+            
+            generarReportePDFTraslados(datosFiltrados, tipoReporte, `Reporte_Mensual_Traslados_${mesSeleccionado}`);
+        }
+
+        // Función para generar reporte PDF de comidas
+        function generarReportePDFComidas(datos, tipoReporte, nombreArchivo) {
+            const content = document.createElement('div');
+            content.style.width = '210mm';
+            content.style.padding = '20mm';
+            content.style.fontFamily = 'Arial, sans-serif';
+            content.style.backgroundColor = 'white';
+            
+            let tablaHTML = '';
+            let resumenHTML = '';
+            
+            if (tipoReporte === 'detallado') {
+                // Reporte detallado con tabla
+                tablaHTML = `
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Fecha</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Solicitante</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Departamento</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Tipo</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Lugar</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Total Comidas</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                let totalComidasGeneral = 0;
+                
+                datos.forEach(solicitud => {
+                    totalComidasGeneral += solicitud.totalComidas;
+                    tablaHTML += `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.fecha}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.nombreSolicitante}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.departamento}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.tipoComida}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.lugar}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.totalComidas}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.estado.toUpperCase()}</td>
+                        </tr>
+                    `;
+                });
+                
+                tablaHTML += `
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 20px; font-weight: bold;">
+                        Total de solicitudes: ${datos.length}<br>
+                        Total de comidas solicitadas: ${totalComidasGeneral}
+                    </div>
+                `;
+            } else {
+                // Reporte resumen con estadísticas
+                const totalSolicitudes = datos.length;
+                let totalComidas = 0;
+                const porDepartamento = {};
+                const porEstado = {pendiente: 0, aprobado: 0};
+                const porTipo = {Almuerzo: 0, Cena: 0};
+                
+                datos.forEach(solicitud => {
+                    totalComidas += solicitud.totalComidas;
+                    
+                    // Por departamento
+                    if (!porDepartamento[solicitud.departamento]) {
+                        porDepartamento[solicitud.departamento] = 0;
+                    }
+                    porDepartamento[solicitud.departamento]++;
+                    
+                    // Por estado
+                    porEstado[solicitud.estado]++;
+                    
+                    // Por tipo
+                    porTipo[solicitud.tipoComida]++;
+                });
+                
+                let departamentosHTML = '';
+                for (const dept in porDepartamento) {
+                    departamentosHTML += `<li>${dept}: ${porDepartamento[dept]} solicitudes</li>`;
+                }
+                
+                resumenHTML = `
+                    <div style="margin-top: 20px;">
+                        <h3 style="color: #333;">Resumen Estadístico</h3>
+                        <div style="margin-top: 15px;">
+                            <strong>Total de Solicitudes:</strong> ${totalSolicitudes}<br>
+                            <strong>Total de Comidas Solicitadas:</strong> ${totalComidas}<br>
+                            <strong>Solicitudes por Estado:</strong><br>
+                            <ul>
+                                <li>Pendiente: ${porEstado.pendiente}</li>
+                                <li>Aprobado: ${porEstado.aprobado}</li>
+                            </ul>
+                            <strong>Solicitudes por Tipo:</strong><br>
+                            <ul>
+                                <li>Almuerzo: ${porTipo.Almuerzo}</li>
+                                <li>Cena: ${porTipo.Cena}</li>
+                            </ul>
+                            <strong>Solicitudes por Departamento:</strong><br>
+                            <ul>
+                                ${departamentosHTML}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const fechaGeneracion = new Date().toLocaleDateString('es-ES');
+            const horaGeneracion = new Date().toLocaleTimeString('es-ES');
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+                    <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">REPORTE DE SOLICITUDES DE COMIDAS</h1>
+                    <h3 style="color: #666; font-size: 18px;">${tipoReporte === 'detallado' ? 'Reporte Detallado' : 'Reporte Resumen'}</h3>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>Fecha de generación:</strong> ${fechaGeneracion} ${horaGeneracion}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>Total de registros:</strong> ${datos.length}
+                </div>
+                
+                ${tipoReporte === 'detallado' ? tablaHTML : resumenHTML}
+                
+                <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
+                    <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
+                </div>
+            `;
+            
+            generarPDF(content, nombreArchivo);
+        }
+
+        // Función para generar reporte PDF de traslados
+        function generarReportePDFTraslados(datos, tipoReporte, nombreArchivo) {
+            const content = document.createElement('div');
+            content.style.width = '210mm';
+            content.style.padding = '20mm';
+            content.style.fontFamily = 'Arial, sans-serif';
+            content.style.backgroundColor = 'white';
+            
+            let tablaHTML = '';
+            let resumenHTML = '';
+            
+            if (tipoReporte === 'detallado') {
+                // Reporte detallado con tabla
+                tablaHTML = `
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Fecha</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Solicitante</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Departamento</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Origen</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Destino</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                datos.forEach(solicitud => {
+                    tablaHTML += `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.fecha}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.nombreSolicitante}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.departamento}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.origenIda}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.destinoIda}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${solicitud.estado.toUpperCase()}</td>
+                        </tr>
+                    `;
+                });
+                
+                tablaHTML += `
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 20px; font-weight: bold;">
+                        Total de solicitudes: ${datos.length}
+                    </div>
+                `;
+            } else {
+                // Reporte resumen con estadísticas
+                const totalSolicitudes = datos.length;
+                const porDepartamento = {};
+                const porEstado = {pendiente: 0, aprobado: 0};
+                
+                datos.forEach(solicitud => {
+                    // Por departamento
+                    if (!porDepartamento[solicitud.departamento]) {
+                        porDepartamento[solicitud.departamento] = 0;
+                    }
+                    porDepartamento[solicitud.departamento]++;
+                    
+                    // Por estado
+                    porEstado[solicitud.estado]++;
+                });
+                
+                let departamentosHTML = '';
+                for (const dept in porDepartamento) {
+                    departamentosHTML += `<li>${dept}: ${porDepartamento[dept]} solicitudes</li>`;
+                }
+                
+                resumenHTML = `
+                    <div style="margin-top: 20px;">
+                        <h3 style="color: #333;">Resumen Estadístico</h3>
+                        <div style="margin-top: 15px;">
+                            <strong>Total de Solicitudes:</strong> ${totalSolicitudes}<br>
+                            <strong>Solicitudes por Estado:</strong><br>
+                            <ul>
+                                <li>Pendiente: ${porEstado.pendiente}</li>
+                                <li>Aprobado: ${porEstado.aprobado}</li>
+                            </ul>
+                            <strong>Solicitudes por Departamento:</strong><br>
+                            <ul>
+                                ${departamentosHTML}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const fechaGeneracion = new Date().toLocaleDateString('es-ES');
+            const horaGeneracion = new Date().toLocaleTimeString('es-ES');
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+                    <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">REPORTE DE SOLICITUDES DE TRASLADOS</h1>
+                    <h3 style="color: #666; font-size: 18px;">${tipoReporte === 'detallado' ? 'Reporte Detallado' : 'Reporte Resumen'}</h3>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>Fecha de generación:</strong> ${fechaGeneracion} ${horaGeneracion}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>Total de registros:</strong> ${datos.length}
+                </div>
+                
+                ${tipoReporte === 'detallado' ? tablaHTML : resumenHTML}
+                
+                <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
+                    <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
+                </div>
+            `;
+            
+            generarPDF(content, nombreArchivo);
+        }
+    </script>
+</body>
+</html>
