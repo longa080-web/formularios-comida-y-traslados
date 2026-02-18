@@ -537,6 +537,16 @@
             margin-top: 15px;
             border-left: 4px solid var(--success-color);
         }
+        
+        /* Estilo para checkbox de recordar contraseña */
+        .remember-checkbox {
+            margin-top: 10px;
+        }
+        
+        .remember-checkbox .form-check-label {
+            font-weight: normal;
+            color: var(--text-light);
+        }
     </style>
 </head>
 <body>
@@ -562,7 +572,15 @@
         </div>
         <div class="mb-4">
             <label class="form-label login-label">Contraseña</label>
-            <input type="password" id="password" class="form-control" value="123456">
+            <input type="password" id="password" class="form-control">
+        </div>
+        <div class="remember-checkbox mb-4">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rememberPassword">
+                <label class="form-check-label" for="rememberPassword">
+                    Recordar contraseña para este usuario
+                </label>
+            </div>
         </div>
         <button onclick="login()" class="btn-custom w-100">Iniciar Sesión</button>
     </div>
@@ -664,7 +682,7 @@
                                         <option>RRHH y SL</option>
                                         <option>Sistemas</option>
                                         <option value="MSO">MSO</option>
-                                        <option>Operaciones IP</option>  <!-- ¡CORREGIDO! -->
+                                        <option>Operaciones IP</option>
                                     </select>
                                 </div>
                             </div>
@@ -773,11 +791,8 @@
                             </div>
 
                             <div class="d-flex justify-content-between mt-4">
-                                <button type="button" onclick="generarPDFComida()" class="btn-custom">
-                                    <i class="bi bi-file-pdf me-2"></i> Generar PDF
-                                </button>
                                 <button type="button" onclick="guardarComida()" class="btn btn-success">
-                                    <i class="bi bi-save me-2"></i> Guardar Solicitud
+                                    <i class="bi bi-save me-2"></i> Guardar Solicitud y Generar PDF
                                 </button>
                             </div>
                         </form>
@@ -925,11 +940,8 @@
                             </div>
 
                             <div class="d-flex justify-content-between mt-4">
-                                <button type="button" onclick="generarPDFTraslado()" class="btn-custom">
-                                    <i class="bi bi-file-pdf me-2"></i> Generar PDF
-                                </button>
                                 <button type="button" onclick="guardarTraslado()" class="btn btn-success">
-                                    <i class="bi bi-save me-2"></i> Guardar Solicitud
+                                    <i class="bi bi-save me-2"></i> Guardar Solicitud y Generar PDF
                                 </button>
                             </div>
                         </form>
@@ -1004,8 +1016,8 @@
                                 </div>
                             </div>
                             
-                            <!-- Sección de exportación -->
-                            <div class="row mt-3">
+                            <!-- Sección de exportación (solo visible para admin) -->
+                            <div class="row mt-3" id="exportSectionComidas" style="display: none;">
                                 <div class="col-md-12">
                                     <div class="export-buttons">
                                         <button class="btn btn-export" onclick="exportarPDFFiltroComidas()">
@@ -1018,7 +1030,7 @@
                                 </div>
                             </div>
                             
-                            <!-- Sección para reporte mensual -->
+                            <!-- Sección para reporte mensual (solo visible para admin) -->
                             <div id="reporteMensualComidas" class="reporte-mensual-section" style="display: none;">
                                 <h6><i class="bi bi-calendar-check me-2"></i>Generar Reporte Mensual</h6>
                                 <div class="row mt-2">
@@ -1136,8 +1148,8 @@
                                 </div>
                             </div>
                             
-                            <!-- Sección de exportación -->
-                            <div class="row mt-3">
+                            <!-- Sección de exportación (solo visible para admin) -->
+                            <div class="row mt-3" id="exportSectionTraslados" style="display: none;">
                                 <div class="col-md-12">
                                     <div class="export-buttons">
                                         <button class="btn btn-export" onclick="exportarPDFFiltroTraslados()">
@@ -1150,7 +1162,7 @@
                                 </div>
                             </div>
                             
-                            <!-- Sección para reporte mensual -->
+                            <!-- Sección para reporte mensual (solo visible para admin) -->
                             <div id="reporteMensualTraslados" class="reporte-mensual-section" style="display: none;">
                                 <h6><i class="bi bi-calendar-check me-2"></i>Generar Reporte Mensual</h6>
                                 <div class="row mt-2">
@@ -1256,6 +1268,12 @@
         // Variables para paginación
         let paginaActualComidas = 1;
         let paginaActualTraslados = 1;
+
+        // Contraseñas por usuario
+        const passwords = {
+            supervisor: 'Inter1234',
+            admin: 'Admin1234'
+        };
 
         // Base de datos de empleados CARACAS (COMPLETA - 166 empleados)
         const empleadosCARACAS = [
@@ -1480,8 +1498,20 @@
             }
         }
 
+        // Cargar contraseñas guardadas al iniciar
+        function cargarCredencialesGuardadas() {
+            const savedCredentials = localStorage.getItem('savedCredentials');
+            if (savedCredentials) {
+                const creds = JSON.parse(savedCredentials);
+                document.getElementById('userSelect').value = creds.user;
+                document.getElementById('password').value = creds.password;
+                document.getElementById('rememberPassword').checked = true;
+            }
+        }
+
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
+            cargarCredencialesGuardadas();
             cargarDatosIniciales();
             cargarLugaresComida();
             cargarLugaresTraslado();
@@ -1630,20 +1660,41 @@
         function login() {
             const user = document.getElementById('userSelect').value;
             const password = document.getElementById('password').value;
+            const rememberPassword = document.getElementById('rememberPassword').checked;
             
-            if (user && password === '123456') {
+            if (!user) {
+                alert('Por favor seleccione un usuario');
+                return;
+            }
+            
+            if (password === passwords[user]) {
                 currentUser = user;
+                
+                // Guardar credenciales si se seleccionó recordar
+                if (rememberPassword) {
+                    localStorage.setItem('savedCredentials', JSON.stringify({
+                        user: user,
+                        password: password
+                    }));
+                } else {
+                    localStorage.removeItem('savedCredentials');
+                }
+                
                 document.getElementById('loginSystem').style.display = 'none';
                 document.getElementById('mainSystem').style.display = 'block';
                 document.getElementById('currentUser').textContent = user === 'admin' ? 'Administrador' : 'Supervisor';
                 
-                // Si es supervisor, ocultar pestañas de historial
+                // Configurar visibilidad de elementos según el rol
                 if (user === 'supervisor') {
                     document.getElementById('historial-comidas-tab').style.display = 'none';
                     document.getElementById('historial-traslados-tab').style.display = 'none';
+                    document.getElementById('exportSectionComidas').style.display = 'none';
+                    document.getElementById('exportSectionTraslados').style.display = 'none';
                 } else {
                     document.getElementById('historial-comidas-tab').style.display = 'block';
                     document.getElementById('historial-traslados-tab').style.display = 'block';
+                    document.getElementById('exportSectionComidas').style.display = 'block';
+                    document.getElementById('exportSectionTraslados').style.display = 'block';
                 }
                 
                 // Recargar datos desde localStorage al iniciar sesión
@@ -1670,6 +1721,7 @@
             $('#totalComidas').text(total);
         }
 
+        // Función modificada para guardar comida y generar PDF automáticamente
         function guardarComida() {
             if (!validarFormulario('comidaForm')) return;
             
@@ -1716,7 +1768,7 @@
                 departamentoSolicitante: document.getElementById('departamentoSolicitanteComida').value,
                 fechaSolicitud: document.getElementById('fechaSolicitudComida').value,
                 horaSolicitud: document.getElementById('horaSolicitudComida').value,
-                estado: 'pendiente',
+                estado: 'pendiente', // Siempre pendiente por defecto
                 fechaCreacion: new Date().toISOString(),
                 aprobadoPor: null
             };
@@ -1725,11 +1777,16 @@
             localStorage.setItem('solicitudesComidas', JSON.stringify(solicitudesComidas));
             
             alert('Solicitud de comida guardada exitosamente');
+            
+            // Generar PDF automáticamente después de guardar
+            generarPDFDesdeSolicitudComida(solicitud);
+            
             limpiarFormulario('comidaForm');
             calcularTotalComidas();
             buscarComidas();
         }
 
+        // Función modificada para guardar traslado y generar PDF automáticamente
         function guardarTraslado() {
             if (!validarFormulario('trasladoForm')) return;
             
@@ -1780,7 +1837,7 @@
                 departamentoSolicitante: document.getElementById('departamentoSolicitanteTraslado').value,
                 fechaSolicitud: document.getElementById('fechaSolicitudTraslado').value,
                 horaSolicitud: document.getElementById('horaSolicitudTraslado').value,
-                estado: 'pendiente',
+                estado: 'pendiente', // Siempre pendiente por defecto
                 fechaCreacion: new Date().toISOString(),
                 aprobadoPor: null
             };
@@ -1789,8 +1846,222 @@
             localStorage.setItem('solicitudesTraslados', JSON.stringify(solicitudesTraslados));
             
             alert('Solicitud de traslado guardada exitosamente');
+            
+            // Generar PDF automáticamente después de guardar
+            generarPDFDesdeSolicitudTraslado(solicitud);
+            
             limpiarFormulario('trasladoForm');
             buscarTraslados();
+        }
+
+        // Nueva función para generar PDF desde una solicitud de comida guardada
+        function generarPDFDesdeSolicitudComida(solicitud) {
+            const aprobador = obtenerAprobador(solicitud.departamento);
+            
+            let empleadosHTML = '';
+            if (solicitud.empleadosSeleccionados && solicitud.empleadosSeleccionados.length > 0) {
+                empleadosHTML = '<ul>';
+                solicitud.empleadosSeleccionados.forEach(emp => {
+                    empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
+                });
+                empleadosHTML += '</ul>';
+            }
+            
+            if (solicitud.nombreManualMSO) {
+                empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${solicitud.nombreManualMSO}</p>`;
+            }
+            
+            const content = document.createElement('div');
+            content.style.width = '210mm';
+            content.style.padding = '20mm';
+            content.style.fontFamily = 'Arial, sans-serif';
+            content.style.backgroundColor = 'white';
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+                    <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE COMIDAS</h1>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>FECHA:</strong> ${solicitud.fecha}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>DEPARTAMENTO:</strong> ${solicitud.departamento}
+                </div>
+                
+                ${solicitud.departamento === 'MSO' && solicitud.msoDepartamentos.length > 0 ? `
+                <div style="margin-bottom: 15px;">
+                    <strong>DEPARTAMENTOS MSO:</strong> ${solicitud.msoDepartamentos.join(', ')}
+                </div>
+                ` : ''}
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
+                    ${empleadosHTML || 'No se seleccionaron empleados'}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>TIPO DE COMIDA:</strong> ${solicitud.tipoComida}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>LUGAR:</strong> ${solicitud.lugar}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>ACTIVIDAD:</strong> ${solicitud.actividad}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>COMIDAS INTERNO:</strong> ${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>COMIDAS EXTERNO:</strong> ${solicitud.cantidadExterno}
+                </div>
+                
+                <div style="margin-bottom: 20px; font-size: 18px; font-weight: bold;">
+                    <strong>TOTAL COMIDAS:</strong> ${solicitud.totalComidas}
+                </div>
+                
+                <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
+                    <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>NOMBRE:</strong> ${solicitud.nombreSolicitante}
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>DEPARTAMENTO:</strong> ${solicitud.departamentoSolicitante}
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>FECHA Y HORA:</strong> ${solicitud.fechaSolicitud} ${solicitud.horaSolicitud}
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
+                    <div style="margin-bottom: 40px;">
+                        <strong>APROBADO POR:</strong> ${solicitud.aprobadoPor || aprobador}
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
+                    <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
+                </div>
+            `;
+            
+            generarPDF(content, 'Solicitud_Comida_' + solicitud.id + '_' + solicitud.fecha);
+        }
+
+        // Nueva función para generar PDF desde una solicitud de traslado guardada
+        function generarPDFDesdeSolicitudTraslado(solicitud) {
+            const aprobador = obtenerAprobador(solicitud.departamento);
+            
+            let empleadosHTML = '';
+            if (solicitud.empleadosSeleccionados && solicitud.empleadosSeleccionados.length > 0) {
+                empleadosHTML = '<ul>';
+                solicitud.empleadosSeleccionados.forEach(emp => {
+                    empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
+                });
+                empleadosHTML += '</ul>';
+            }
+            
+            if (solicitud.nombreManualMSO) {
+                empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${solicitud.nombreManualMSO}</p>`;
+            }
+            
+            const content = document.createElement('div');
+            content.style.width = '210mm';
+            content.style.padding = '20mm';
+            content.style.fontFamily = 'Arial, sans-serif';
+            content.style.backgroundColor = 'white';
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+                    <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE TRASLADOS</h1>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>FECHA:</strong> ${solicitud.fecha}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>DEPARTAMENTO:</strong> ${solicitud.departamento}
+                </div>
+                
+                ${solicitud.departamento === 'MSO' && solicitud.msoDepartamentos.length > 0 ? `
+                <div style="margin-bottom: 15px;">
+                    <strong>DEPARTAMENTOS MSO:</strong> ${solicitud.msoDepartamentos.join(', ')}
+                </div>
+                ` : ''}
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
+                    ${empleadosHTML || 'No se seleccionaron empleados'}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 10px; font-size: 18px;">IDA</h3>
+                    <div style="margin-bottom: 5px;">
+                        <strong>LUGAR DE ORIGEN:</strong> ${solicitud.origenIda}
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <strong>LUGAR DE DESTINO:</strong> ${solicitud.destinoIda}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 10px; font-size: 18px;">VUELTA</h3>
+                    <div style="margin-bottom: 5px;">
+                        <strong>LUGAR DE ORIGEN:</strong> ${solicitud.origenVuelta || ''}
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <strong>LUGAR DE DESTINO:</strong> ${solicitud.destinoVuelta || ''}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>ACTIVIDADES A REALIZAR:</strong> ${solicitud.actividades}
+                </div>
+                
+                <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
+                    <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>NOMBRE:</strong> ${solicitud.nombreSolicitante}
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>DEPARTAMENTO:</strong> ${solicitud.departamentoSolicitante}
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <strong>FECHA Y HORA DEL TRASLADO:</strong> ${solicitud.fechaSolicitud} ${solicitud.horaSolicitud}
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
+                    <div style="margin-bottom: 40px;">
+                        <strong>APROBADO POR:</strong> ${solicitud.aprobadoPor || aprobador}
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
+                    <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
+                </div>
+            `;
+            
+            generarPDF(content, 'Solicitud_Traslado_' + solicitud.id + '_' + solicitud.fecha);
         }
 
         function cargarLugaresComida() {
@@ -1840,235 +2111,19 @@
                 const checkboxes = document.querySelectorAll('#msoDepartamentosTraslado input[type="checkbox"]');
                 checkboxes.forEach(checkbox => checkbox.checked = false);
             }
-        }
-
-        function generarPDFComida() {
-            if (!validarFormulario('comidaForm')) return;
             
-            const departamento = document.getElementById('departamentoComida').value;
-            const aprobador = obtenerAprobador(departamento);
-            const empleadosSeleccionados = $('#empleadoComida').select2('data');
-            const nombreManualMSO = document.getElementById('nombreManualMSOComida').value;
+            // Restablecer fecha y hora actuales
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaComida').value = today;
+            document.getElementById('fechaSolicitudComida').value = today;
+            document.getElementById('fechaTraslado').value = today;
+            document.getElementById('fechaSolicitudTraslado').value = today;
             
-            // Crear contenido para el PDF
-            const content = document.createElement('div');
-            content.style.width = '210mm';
-            content.style.padding = '20mm';
-            content.style.fontFamily = 'Arial, sans-serif';
-            content.style.backgroundColor = 'white';
-            
-            let empleadosHTML = '';
-            if (empleadosSeleccionados.length > 0) {
-                empleadosHTML = '<ul>';
-                empleadosSeleccionados.forEach(emp => {
-                    empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
-                });
-                empleadosHTML += '</ul>';
-            }
-            
-            if (nombreManualMSO) {
-                empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${nombreManualMSO}</p>`;
-            }
-            
-            content.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
-                    <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE COMIDAS</h1>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>FECHA:</strong> ${document.getElementById('fechaComida').value}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>DEPARTAMENTO:</strong> ${departamento}
-                </div>
-                
-                ${departamento === 'MSO' ? `
-                <div style="margin-bottom: 15px;">
-                    <strong>DEPARTAMENTOS MSO:</strong> ${getMSODepartamentosSeleccionados('comida')}
-                </div>
-                ` : ''}
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
-                    ${empleadosHTML || 'No se seleccionaron empleados'}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${empleadosSeleccionados.length}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>TIPO DE COMIDA:</strong> ${document.querySelector('input[name="tipoComida"]:checked').value}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>LUGAR:</strong> ${document.getElementById('lugarComida').value}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>ACTIVIDAD:</strong> ${document.getElementById('actividadComida').value}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>COMIDAS INTERNO:</strong> ${empleadosSeleccionados.length}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>COMIDAS EXTERNO:</strong> ${document.getElementById('cantidadExterno').value}
-                </div>
-                
-                <div style="margin-bottom: 20px; font-size: 18px; font-weight: bold;">
-                    <strong>TOTAL COMIDAS:</strong> ${empleadosSeleccionados.length + parseInt(document.getElementById('cantidadExterno').value || 0)}
-                </div>
-                
-                <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
-                    <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <strong>NOMBRE:</strong> ${document.getElementById('nombreComida').value}
-                    </div>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <strong>DEPARTAMENTO:</strong> ${document.getElementById('departamentoSolicitanteComida').value}
-                    </div>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <strong>FECHA Y HORA:</strong> ${document.getElementById('fechaSolicitudComida').value} ${document.getElementById('horaSolicitudComida').value}
-                    </div>
-                </div>
-                
-                <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
-                    <div style="margin-bottom: 40px;">
-                        <strong>APROBADO POR:</strong> ${aprobador}
-                    </div>
-                </div>
-                
-                <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
-                    <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
-                </div>
-            `;
-            
-            // Generar PDF
-            generarPDF(content, 'Solicitud_Comida_' + new Date().toISOString().slice(0,10) + '_' + Date.now());
-        }
-
-        function generarPDFTraslado() {
-            if (!validarFormulario('trasladoForm')) return;
-            
-            const departamento = document.getElementById('departamentoTraslado').value;
-            const aprobador = obtenerAprobador(departamento);
-            const empleadosSeleccionados = $('#empleadoTraslado').select2('data');
-            const nombreManualMSO = document.getElementById('nombreManualMSOTraslado').value;
-            
-            // Crear contenido para el PDF
-            const content = document.createElement('div');
-            content.style.width = '210mm';
-            content.style.padding = '20mm';
-            content.style.fontFamily = 'Arial, sans-serif';
-            content.style.backgroundColor = 'white';
-            
-            let empleadosHTML = '';
-            if (empleadosSeleccionados.length > 0) {
-                empleadosHTML = '<ul>';
-                empleadosSeleccionados.forEach(emp => {
-                    empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
-                });
-                empleadosHTML += '</ul>';
-            }
-            
-            if (nombreManualMSO) {
-                empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${nombreManualMSO}</p>`;
-            }
-            
-            content.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
-                    <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE TRASLADOS</h1>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>FECHA:</strong> ${document.getElementById('fechaTraslado').value}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>DEPARTAMENTO:</strong> ${departamento}
-                </div>
-                
-                ${departamento === 'MSO' ? `
-                <div style="margin-bottom: 15px;">
-                    <strong>DEPARTAMENTOS MSO:</strong> ${getMSODepartamentosSeleccionados('traslado')}
-                </div>
-                ` : ''}
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
-                    ${empleadosHTML || 'No se seleccionaron empleados'}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${empleadosSeleccionados.length}
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 10px; font-size: 18px;">IDA</h3>
-                    <div style="margin-bottom: 5px;">
-                        <strong>LUGAR DE ORIGEN:</strong> ${document.getElementById('origenIda').value}
-                    </div>
-                    <div style="margin-bottom: 5px;">
-                        <strong>LUGAR DE DESTINO:</strong> ${document.getElementById('destinoIda').value}
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 10px; font-size: 18px;">VUELTA</h3>
-                    <div style="margin-bottom: 5px;">
-                        <strong>LUGAR DE ORIGEN:</strong> ${document.getElementById('origenVuelta').value}
-                    </div>
-                    <div style="margin-bottom: 5px;">
-                        <strong>LUGAR DE DESTINO:</strong> ${document.getElementById('destinoVuelta').value}
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>ACTIVIDADES A REALIZAR:</strong> ${document.getElementById('actividadesTraslado').value}
-                </div>
-                
-                <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
-                    <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <strong>NOMBRE:</strong> ${document.getElementById('nombreTraslado').value}
-                    </div>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <strong>DEPARTAMENTO:</strong> ${document.getElementById('departamentoSolicitanteTraslado').value}
-                    </div>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <strong>FECHA Y HORA DEL TRASLADO:</strong> ${document.getElementById('fechaSolicitudTraslado').value} ${document.getElementById('horaSolicitudTraslado').value}
-                    </div>
-                </div>
-                
-                <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
-                    <div style="margin-bottom: 40px;">
-                        <strong>APROBADO POR:</strong> ${aprobador}
-                    </div>
-                </div>
-                
-                <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
-                    <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
-                </div>
-            `;
-            
-            // Generar PDF
-            generarPDF(content, 'Solicitud_Traslado_' + new Date().toISOString().slice(0,10) + '_' + Date.now());
-        }
-
-        function getMSODepartamentosSeleccionados(tipo) {
-            const sectionId = tipo === 'comida' ? 'msoDepartamentosComida' : 'msoDepartamentosTraslado';
-            const checkboxes = document.querySelectorAll(`#${sectionId} input[type="checkbox"]:checked`);
-            const departamentos = Array.from(checkboxes).map(cb => cb.value);
-            return departamentos.join(', ') || 'Ninguno seleccionado';
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
+                             now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('horaSolicitudComida').value = timeString;
+            document.getElementById('horaSolicitudTraslado').value = timeString;
         }
 
         function generarPDF(contentElement, filename) {
@@ -2122,7 +2177,7 @@
                 // Limpiar el div temporal
                 document.body.removeChild(tempDiv);
                 
-                alert('PDF generado y descargado exitosamente');
+                console.log('PDF generado y descargado exitosamente');
             }).catch(error => {
                 console.error('Error al generar PDF:', error);
                 alert('Error al generar el PDF. Por favor, intente nuevamente.');
@@ -2240,9 +2295,10 @@
                         <button class="btn btn-sm btn-danger me-1" onclick="eliminarSolicitud(${solicitud.id}, 'comida')">
                             <i class="bi bi-trash"></i>
                         </button>
-                        <button class="btn btn-sm btn-info" onclick="descargarPDFHistorial(${solicitud.id}, 'comida')">
-                            <i class="bi bi-download"></i>
-                        </button>
+                        ${currentUser === 'admin' ? 
+                            `<button class="btn btn-sm btn-info" onclick="descargarPDFHistorial(${solicitud.id}, 'comida')">
+                                <i class="bi bi-download"></i>
+                            </button>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -2350,9 +2406,10 @@
                         <button class="btn btn-sm btn-danger me-1" onclick="eliminarSolicitud(${solicitud.id}, 'traslado')">
                             <i class="bi bi-trash"></i>
                         </button>
-                        <button class="btn btn-sm btn-info" onclick="descargarPDFHistorial(${solicitud.id}, 'traslado')">
-                            <i class="bi bi-download"></i>
-                        </button>
+                        ${currentUser === 'admin' ? 
+                            `<button class="btn btn-sm btn-info" onclick="descargarPDFHistorial(${solicitud.id}, 'traslado')">
+                                <i class="bi bi-download"></i>
+                            </button>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -2595,217 +2652,21 @@
         }
 
         function descargarPDFHistorial(id, type) {
-            let solicitud;
+            if (currentUser !== 'admin') {
+                alert('Solo el administrador puede descargar PDFs del historial');
+                return;
+            }
+            
             if (type === 'comida') {
-                solicitud = solicitudesComidas.find(s => s.id === id);
-                if (!solicitud) return;
-                
-                const aprobador = obtenerAprobador(solicitud.departamento);
-                
-                let empleadosHTML = '';
-                if (solicitud.empleadosSeleccionados && solicitud.empleadosSeleccionados.length > 0) {
-                    empleadosHTML = '<ul>';
-                    solicitud.empleadosSeleccionados.forEach(emp => {
-                        empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
-                    });
-                    empleadosHTML += '</ul>';
+                const solicitud = solicitudesComidas.find(s => s.id === id);
+                if (solicitud) {
+                    generarPDFDesdeSolicitudComida(solicitud);
                 }
-                
-                if (solicitud.nombreManualMSO) {
-                    empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${solicitud.nombreManualMSO}</p>`;
-                }
-                
-                const content = document.createElement('div');
-                content.style.width = '210mm';
-                content.style.padding = '20mm';
-                content.style.fontFamily = 'Arial, sans-serif';
-                content.style.backgroundColor = 'white';
-                
-                content.innerHTML = `
-                    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
-                        <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE COMIDAS</h1>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>FECHA:</strong> ${solicitud.fecha}
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>DEPARTAMENTO:</strong> ${solicitud.departamento}
-                    </div>
-                    
-                    ${solicitud.departamento === 'MSO' && solicitud.msoDepartamentos.length > 0 ? `
-                    <div style="margin-bottom: 15px;">
-                        <strong>DEPARTAMENTOS MSO:</strong> ${solicitud.msoDepartamentos.join(', ')}
-                    </div>
-                    ` : ''}
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
-                        ${empleadosHTML || 'No se seleccionaron empleados'}
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>TIPO DE COMIDA:</strong> ${solicitud.tipoComida}
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>LUGAR:</strong> ${solicitud.lugar}
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>ACTIVIDAD:</strong> ${solicitud.actividad}
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>COMIDAS INTERNO:</strong> ${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>COMIDAS EXTERNO:</strong> ${solicitud.cantidadExterno}
-                    </div>
-                    
-                    <div style="margin-bottom: 20px; font-size: 18px; font-weight: bold;">
-                        <strong>TOTAL COMIDAS:</strong> ${solicitud.totalComidas}
-                    </div>
-                    
-                    <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
-                        <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
-                        
-                        <div style="margin-bottom: 10px;">
-                            <strong>NOMBRE:</strong> ${solicitud.nombreSolicitante}
-                        </div>
-                        
-                        <div style="margin-bottom: 10px;">
-                            <strong>DEPARTAMENTO:</strong> ${solicitud.departamentoSolicitante}
-                        </div>
-                        
-                        <div style="margin-bottom: 10px;">
-                            <strong>FECHA Y HORA:</strong> ${solicitud.fechaSolicitud} ${solicitud.horaSolicitud}
-                        </div>
-                    </div>
-                    
-                    <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
-                        <div style="margin-bottom: 40px;">
-                            <strong>APROBADO POR:</strong> ${solicitud.aprobadoPor || aprobador}
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
-                        <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
-                    </div>
-                `;
-                
-                generarPDF(content, 'Solicitud_Comida_' + solicitud.id + '_' + solicitud.fecha);
             } else {
-                solicitud = solicitudesTraslados.find(s => s.id === id);
-                if (!solicitud) return;
-                
-                const aprobador = obtenerAprobador(solicitud.departamento);
-                
-                let empleadosHTML = '';
-                if (solicitud.empleadosSeleccionados && solicitud.empleadosSeleccionados.length > 0) {
-                    empleadosHTML = '<ul>';
-                    solicitud.empleadosSeleccionados.forEach(emp => {
-                        empleadosHTML += `<li>${emp.nombre} - ${emp.cargo} (${emp.tipo})</li>`;
-                    });
-                    empleadosHTML += '</ul>';
+                const solicitud = solicitudesTraslados.find(s => s.id === id);
+                if (solicitud) {
+                    generarPDFDesdeSolicitudTraslado(solicitud);
                 }
-                
-                if (solicitud.nombreManualMSO) {
-                    empleadosHTML += `<p><strong>Personal MSO adicional:</strong> ${solicitud.nombreManualMSO}</p>`;
-                }
-                
-                const content = document.createElement('div');
-                content.style.width = '210mm';
-                content.style.padding = '20mm';
-                content.style.fontFamily = 'Arial, sans-serif';
-                content.style.backgroundColor = 'white';
-                
-                content.innerHTML = `
-                    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
-                        <h1 style="color: #333; margin-bottom: 10px; font-size: 24px;">SOLICITUD DE TRASLADOS</h1>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>FECHA:</strong> ${solicitud.fecha}
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>DEPARTAMENTO:</strong> ${solicitud.departamento}
-                    </div>
-                    
-                    ${solicitud.departamento === 'MSO' && solicitud.msoDepartamentos.length > 0 ? `
-                    <div style="margin-bottom: 15px;">
-                        <strong>DEPARTAMENTOS MSO:</strong> ${solicitud.msoDepartamentos.join(', ')}
-                    </div>
-                    ` : ''}
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>PERSONAL QUE REQUIERE EL SERVICIO:</strong>
-                        ${empleadosHTML || 'No se seleccionaron empleados'}
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>TOTAL EMPLEADOS SELECCIONADOS:</strong> ${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="margin-bottom: 10px; font-size: 18px;">IDA</h3>
-                        <div style="margin-bottom: 5px;">
-                            <strong>LUGAR DE ORIGEN:</strong> ${solicitud.origenIda}
-                        </div>
-                        <div style="margin-bottom: 5px;">
-                            <strong>LUGAR DE DESTINO:</strong> ${solicitud.destinoIda}
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="margin-bottom: 10px; font-size: 18px;">VUELTA</h3>
-                        <div style="margin-bottom: 5px;">
-                            <strong>LUGAR DE ORIGEN:</strong> ${solicitud.origenVuelta || ''}
-                        </div>
-                        <div style="margin-bottom: 5px;">
-                            <strong>LUGAR DE DESTINO:</strong> ${solicitud.destinoVuelta || ''}
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <strong>ACTIVIDADES A REALIZAR:</strong> ${solicitud.actividades}
-                    </div>
-                    
-                    <div style="border-top: 1px solid #333; margin: 30px 0; padding-top: 20px;">
-                        <h3 style="margin-bottom: 15px; font-size: 20px;">DATOS DEL SUPERVISOR SOLICITANTE</h3>
-                        
-                        <div style="margin-bottom: 10px;">
-                            <strong>NOMBRE:</strong> ${solicitud.nombreSolicitante}
-                        </div>
-                        
-                        <div style="margin-bottom: 10px;">
-                            <strong>DEPARTAMENTO:</strong> ${solicitud.departamentoSolicitante}
-                        </div>
-                        
-                        <div style="margin-bottom: 10px;">
-                            <strong>FECHA Y HORA DEL TRASLADO:</strong> ${solicitud.fechaSolicitud} ${solicitud.horaSolicitud}
-                        </div>
-                    </div>
-                    
-                    <div style="border-top: 1px solid #333; margin: 50px 0; padding-top: 40px;">
-                        <div style="margin-bottom: 40px;">
-                            <strong>APROBADO POR:</strong> ${solicitud.aprobadoPor || aprobador}
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 80px; color: #666; font-size: 12px;">
-                        <p>Sistema de Gestión de Solicitudes - Documento generado automáticamente</p>
-                    </div>
-                `;
-                
-                generarPDF(content, 'Solicitud_Traslado_' + solicitud.id + '_' + solicitud.fecha);
             }
         }
 
@@ -2813,12 +2674,20 @@
 
         // Función para mostrar/ocultar la sección de reporte mensual de comidas
         function mostrarReporteMensualComidas() {
+            if (currentUser !== 'admin') {
+                alert('Solo el administrador puede acceder a esta función');
+                return;
+            }
             const seccion = document.getElementById('reporteMensualComidas');
             seccion.style.display = seccion.style.display === 'none' ? 'block' : 'none';
         }
 
         // Función para mostrar/ocultar la sección de reporte mensual de traslados
         function mostrarReporteMensualTraslados() {
+            if (currentUser !== 'admin') {
+                alert('Solo el administrador puede acceder a esta función');
+                return;
+            }
             const seccion = document.getElementById('reporteMensualTraslados');
             seccion.style.display = seccion.style.display === 'none' ? 'block' : 'none';
         }
@@ -2922,6 +2791,11 @@
 
         // Función para exportar el filtro actual a PDF (comidas)
         function exportarPDFFiltroComidas() {
+            if (currentUser !== 'admin') {
+                alert('Solo el administrador puede exportar a PDF');
+                return;
+            }
+            
             const datosFiltrados = obtenerDatosFiltradosComidas();
             
             if (datosFiltrados.length === 0) {
@@ -2935,6 +2809,11 @@
 
         // Función para exportar el filtro actual a PDF (traslados)
         function exportarPDFFiltroTraslados() {
+            if (currentUser !== 'admin') {
+                alert('Solo el administrador puede exportar a PDF');
+                return;
+            }
+            
             const datosFiltrados = obtenerDatosFiltradosTraslados();
             
             if (datosFiltrados.length === 0) {
@@ -2948,6 +2827,11 @@
 
         // Función para generar reporte mensual (comidas)
         function generarReporteMensualComidas() {
+            if (currentUser !== 'admin') {
+                alert('Solo el administrador puede generar reportes');
+                return;
+            }
+            
             const mesSeleccionado = document.getElementById('mesReporteComida').value;
             const tipoReporte = document.getElementById('tipoReporteComida').value;
             
@@ -2974,6 +2858,11 @@
 
         // Función para generar reporte mensual (traslados)
         function generarReporteMensualTraslados() {
+            if (currentUser !== 'admin') {
+                alert('Solo el administrador puede generar reportes');
+                return;
+            }
+            
             const mesSeleccionado = document.getElementById('mesReporteTraslado').value;
             const tipoReporte = document.getElementById('tipoReporteTraslado').value;
             
