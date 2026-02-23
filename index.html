@@ -587,6 +587,97 @@
             background-color: #dc3545;
             box-shadow: 0 0 5px #dc3545;
         }
+
+        /* Estilos para vista detallada */
+        .detalle-solicitud {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--primary-blue);
+        }
+        
+        .detalle-solicitud h5 {
+            color: var(--dark-blue);
+            border-bottom: 2px solid var(--light-blue);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .detalle-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .detalle-item {
+            background-color: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .detalle-item strong {
+            color: var(--primary-blue);
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .detalle-item span {
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+        
+        .detalle-empleados {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-top: 15px;
+        }
+        
+        .detalle-empleados ul {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+        }
+        
+        .detalle-empleados li {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .detalle-empleados li:last-child {
+            border-bottom: none;
+        }
+        
+        .detalle-empleados .badge {
+            margin-right: 10px;
+            padding: 5px 10px;
+        }
+        
+        .btn-ver-detalle {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-ver-detalle:hover {
+            background-color: var(--secondary-blue);
+            color: white;
+        }
+        
+        .modal-body-detalle {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -1282,9 +1373,9 @@
         </div>
     </div>
 
-    <!-- Modal para Edición -->
+    <!-- Modal para Edición (MEJORADO) -->
     <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Editar Solicitud</h5>
@@ -1292,6 +1383,24 @@
                 </div>
                 <div class="modal-body" id="editModalBody">
                     <!-- Contenido dinámico para edición -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Detalle -->
+    <div class="modal fade" id="detalleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-eye me-2"></i>Detalle de la Solicitud</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-detalle" id="detalleModalBody">
+                    <!-- Contenido dinámico para el detalle -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -2521,18 +2630,21 @@
                     <td>${solicitud.totalComidas} (${totalEmpleados} int + ${solicitud.cantidadExterno} ext)</td>
                     <td><span class="status-badge status-${solicitud.estado}">${solicitud.estado.toUpperCase()}</span></td>
                     <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-info me-1" onclick="verDetalle(${solicitud.id}, 'comida')" title="Ver detalle">
+                            <i class="bi bi-eye"></i>
+                        </button>
                         ${currentUser === 'admin' && solicitud.estado === 'pendiente' ? 
-                            `<button class="btn btn-sm btn-success me-1" onclick="abrirAutorizacion(${solicitud.id}, 'comida')">
+                            `<button class="btn btn-sm btn-success me-1" onclick="abrirAutorizacion(${solicitud.id}, 'comida')" title="Autorizar">
                                 <i class="bi bi-check"></i>
                             </button>` : ''}
-                        <button class="btn btn-sm btn-warning me-1" onclick="editarSolicitud(${solicitud.id}, 'comida')">
+                        <button class="btn btn-sm btn-warning me-1" onclick="editarSolicitud(${solicitud.id}, 'comida')" title="Editar">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger me-1" onclick="eliminarSolicitud(${solicitud.id}, 'comida')">
+                        <button class="btn btn-sm btn-danger me-1" onclick="eliminarSolicitud(${solicitud.id}, 'comida')" title="Eliminar">
                             <i class="bi bi-trash"></i>
                         </button>
                         ${currentUser === 'admin' ? 
-                            `<button class="btn btn-sm btn-info" onclick="descargarPDFHistorial(${solicitud.id}, 'comida')">
+                            `<button class="btn btn-sm btn-secondary" onclick="descargarPDFHistorial(${solicitud.id}, 'comida')" title="Descargar PDF">
                                 <i class="bi bi-download"></i>
                             </button>` : ''}
                     </td>
@@ -2632,18 +2744,21 @@
                     <td>${solicitud.destinoIda}</td>
                     <td><span class="status-badge status-${solicitud.estado}">${solicitud.estado.toUpperCase()}</span></td>
                     <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-info me-1" onclick="verDetalle(${solicitud.id}, 'traslado')" title="Ver detalle">
+                            <i class="bi bi-eye"></i>
+                        </button>
                         ${currentUser === 'admin' && solicitud.estado === 'pendiente' ? 
-                            `<button class="btn btn-sm btn-success me-1" onclick="abrirAutorizacion(${solicitud.id}, 'traslado')">
+                            `<button class="btn btn-sm btn-success me-1" onclick="abrirAutorizacion(${solicitud.id}, 'traslado')" title="Autorizar">
                                 <i class="bi bi-check"></i>
                             </button>` : ''}
-                        <button class="btn btn-sm btn-warning me-1" onclick="editarSolicitud(${solicitud.id}, 'traslado')">
+                        <button class="btn btn-sm btn-warning me-1" onclick="editarSolicitud(${solicitud.id}, 'traslado')" title="Editar">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger me-1" onclick="eliminarSolicitud(${solicitud.id}, 'traslado')">
+                        <button class="btn btn-sm btn-danger me-1" onclick="eliminarSolicitud(${solicitud.id}, 'traslado')" title="Eliminar">
                             <i class="bi bi-trash"></i>
                         </button>
                         ${currentUser === 'admin' ? 
-                            `<button class="btn btn-sm btn-info" onclick="descargarPDFHistorial(${solicitud.id}, 'traslado')">
+                            `<button class="btn btn-sm btn-secondary" onclick="descargarPDFHistorial(${solicitud.id}, 'traslado')" title="Descargar PDF">
                                 <i class="bi bi-download"></i>
                             </button>` : ''}
                     </td>
@@ -2797,6 +2912,7 @@
             alert('Solicitud aprobada exitosamente');
         }
 
+        // Función MEJORADA para editar solicitud (completa)
         function editarSolicitud(id, type) {
             currentSolicitudId = id;
             currentSolicitudType = type;
@@ -2812,11 +2928,22 @@
             
             let formHTML = '';
             if (type === 'comida') {
+                // Obtener empleados seleccionados para mostrarlos
+                const empleadosList = solicitud.empleadosSeleccionados ? 
+                    solicitud.empleadosSeleccionados.map(emp => 
+                        `<li><span class="badge ${emp.tipo === 'MSO' ? 'badge-mso' : 'badge-caracas'} me-2">${emp.tipo}</span> ${emp.nombre} - ${emp.cargo}</li>`
+                    ).join('') : '';
+                
                 formHTML = `
                     <form onsubmit="guardarEdicion(event)">
                         <div class="mb-3">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" class="form-control" id="editFecha" value="${solicitud.fecha}" required>
+                        </div>
+                        
+                        <div class="mb-3">
                             <label class="form-label">Departamento</label>
-                            <select class="form-select" id="editDepartamento">
+                            <select class="form-select" id="editDepartamento" required>
                                 <option value="Administracion" ${solicitud.departamento === 'Administracion' ? 'selected' : ''}>Administracion</option>
                                 <option value="Area tec" ${solicitud.departamento === 'Area tec' ? 'selected' : ''}>Area tec</option>
                                 <option value="Obras" ${solicitud.departamento === 'Obras' ? 'selected' : ''}>Obras</option>
@@ -2827,23 +2954,69 @@
                                 <option value="Operaciones IP" ${solicitud.departamento === 'Operaciones IP' ? 'selected' : ''}>Operaciones IP</option>
                             </select>
                         </div>
+                        
                         <div class="mb-3">
-                            <label class="form-label">Cantidad Externo</label>
-                            <input type="number" class="form-control" id="editCantidadExterno" value="${solicitud.cantidadExterno}">
+                            <label class="form-label">Tipo de Comida</label>
+                            <div class="radio-group">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="editTipoComida" id="editAlmuerzo" value="Almuerzo" ${solicitud.tipoComida === 'Almuerzo' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="editAlmuerzo">Almuerzo</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="editTipoComida" id="editCena" value="Cena" ${solicitud.tipoComida === 'Cena' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="editCena">Cena</label>
+                                </div>
+                            </div>
                         </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Lugar</label>
+                            <input type="text" class="form-control" id="editLugar" value="${solicitud.lugar}" list="lugaresComidaList" required>
+                        </div>
+                        
                         <div class="mb-3">
                             <label class="form-label">Actividad</label>
-                            <textarea class="form-control" id="editActividad">${solicitud.actividad}</textarea>
+                            <textarea class="form-control" id="editActividad" rows="3" required>${solicitud.actividad}</textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Cantidad Interno</label>
+                                <input type="number" class="form-control" id="editCantidadInterno" value="${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}" readonly style="background-color: #f8f9fa;">
+                                <small class="form-text text-muted">No editable - determinado por empleados seleccionados</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Cantidad Externo</label>
+                                <input type="number" class="form-control" id="editCantidadExterno" value="${solicitud.cantidadExterno}" min="0" onchange="calcularTotalEdicion()">
+                            </div>
+                        </div>
+                        
+                        <div class="total-box text-center mb-3">
+                            Total de Comidas: <span id="editTotalComidas">${solicitud.totalComidas}</span>
+                        </div>
+                        
+                        ${solicitud.empleadosSeleccionados && solicitud.empleadosSeleccionados.length > 0 ? `
+                        <div class="empleados-seleccionados">
+                            <h6>Empleados Seleccionados:</h6>
+                            <ul>
+                                ${empleadosList}
+                            </ul>
+                            <div class="total-empleados">Total: ${solicitud.empleadosSeleccionados.length}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success w-100">Guardar Cambios</button>
+                        </div>
                     </form>
                 `;
             } else {
+                // Formulario de edición para traslados (similar al original pero con más campos)
                 formHTML = `
                     <form onsubmit="guardarEdicion(event)">
                         <div class="mb-3">
                             <label class="form-label">Departamento</label>
-                            <select class="form-select" id="editDepartamento">
+                            <select class="form-select" id="editDepartamento" required>
                                 <option value="Administracion" ${solicitud.departamento === 'Administracion' ? 'selected' : ''}>Administracion</option>
                                 <option value="Area tec" ${solicitud.departamento === 'Area tec' ? 'selected' : ''}>Area tec</option>
                                 <option value="Obras" ${solicitud.departamento === 'Obras' ? 'selected' : ''}>Obras</option>
@@ -2855,10 +3028,26 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Actividades</label>
-                            <textarea class="form-control" id="editActividades">${solicitud.actividades}</textarea>
+                            <label class="form-label">Origen IDA</label>
+                            <input type="text" class="form-control" id="editOrigenIda" value="${solicitud.origenIda}" list="lugaresTrasladoList" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <div class="mb-3">
+                            <label class="form-label">Destino IDA</label>
+                            <input type="text" class="form-control" id="editDestinoIda" value="${solicitud.destinoIda}" list="lugaresTrasladoList" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Origen VUELTA</label>
+                            <input type="text" class="form-control" id="editOrigenVuelta" value="${solicitud.origenVuelta || ''}" list="lugaresTrasladoList">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Destino VUELTA</label>
+                            <input type="text" class="form-control" id="editDestinoVuelta" value="${solicitud.destinoVuelta || ''}" list="lugaresTrasladoList">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Actividades</label>
+                            <textarea class="form-control" id="editActividades" rows="3" required>${solicitud.actividades}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Guardar Cambios</button>
                     </form>
                 `;
             }
@@ -2866,6 +3055,20 @@
             document.getElementById('editModalBody').innerHTML = formHTML;
             const modal = new bootstrap.Modal(document.getElementById('editModal'));
             modal.show();
+            
+            // Añadir evento para calcular total en tiempo real si es comida
+            if (type === 'comida') {
+                document.getElementById('editCantidadExterno').addEventListener('change', calcularTotalEdicion);
+                document.getElementById('editCantidadExterno').addEventListener('keyup', calcularTotalEdicion);
+            }
+        }
+
+        // Función para calcular total en edición
+        function calcularTotalEdicion() {
+            const interno = parseInt(document.getElementById('editCantidadInterno').value) || 0;
+            const externo = parseInt(document.getElementById('editCantidadExterno').value) || 0;
+            const total = interno + externo;
+            document.getElementById('editTotalComidas').textContent = total;
         }
 
         async function guardarEdicion(event) {
@@ -2874,21 +3077,31 @@
             if (currentSolicitudType === 'comida') {
                 const index = solicitudesComidas.findIndex(s => s.id === currentSolicitudId);
                 if (index !== -1) {
+                    // Guardar todos los campos editables
+                    solicitudesComidas[index].fecha = document.getElementById('editFecha').value;
                     solicitudesComidas[index].departamento = document.getElementById('editDepartamento').value;
-                    solicitudesComidas[index].cantidadExterno = parseInt(document.getElementById('editCantidadExterno').value);
+                    solicitudesComidas[index].tipoComida = document.querySelector('input[name="editTipoComida"]:checked').value;
+                    solicitudesComidas[index].lugar = document.getElementById('editLugar').value;
                     solicitudesComidas[index].actividad = document.getElementById('editActividad').value;
-                    solicitudesComidas[index].totalComidas = solicitudesComidas[index].empleadosSeleccionados.length + solicitudesComidas[index].cantidadExterno;
+                    solicitudesComidas[index].cantidadExterno = parseInt(document.getElementById('editCantidadExterno').value);
+                    // Recalcular total
+                    solicitudesComidas[index].totalComidas = (solicitudesComidas[index].empleadosSeleccionados ? solicitudesComidas[index].empleadosSeleccionados.length : 0) + solicitudesComidas[index].cantidadExterno;
+                    
                     localStorage.setItem('solicitudesComidas', JSON.stringify(solicitudesComidas));
                     
                     // Sincronizar con Firebase
                     if (firebaseInitialized && db) {
                         try {
                             await db.collection('solicitudesComidas').doc(currentSolicitudId.toString()).update({
+                                fecha: solicitudesComidas[index].fecha,
                                 departamento: solicitudesComidas[index].departamento,
-                                cantidadExterno: solicitudesComidas[index].cantidadExterno,
+                                tipoComida: solicitudesComidas[index].tipoComida,
+                                lugar: solicitudesComidas[index].lugar,
                                 actividad: solicitudesComidas[index].actividad,
+                                cantidadExterno: solicitudesComidas[index].cantidadExterno,
                                 totalComidas: solicitudesComidas[index].totalComidas
                             });
+                            console.log('Cambios sincronizados con Firebase');
                         } catch (error) {
                             console.error('Error al sincronizar edición con Firebase:', error);
                         }
@@ -2898,7 +3111,12 @@
                 const index = solicitudesTraslados.findIndex(s => s.id === currentSolicitudId);
                 if (index !== -1) {
                     solicitudesTraslados[index].departamento = document.getElementById('editDepartamento').value;
+                    solicitudesTraslados[index].origenIda = document.getElementById('editOrigenIda').value;
+                    solicitudesTraslados[index].destinoIda = document.getElementById('editDestinoIda').value;
+                    solicitudesTraslados[index].origenVuelta = document.getElementById('editOrigenVuelta').value;
+                    solicitudesTraslados[index].destinoVuelta = document.getElementById('editDestinoVuelta').value;
                     solicitudesTraslados[index].actividades = document.getElementById('editActividades').value;
+                    
                     localStorage.setItem('solicitudesTraslados', JSON.stringify(solicitudesTraslados));
                     
                     // Sincronizar con Firebase
@@ -2906,8 +3124,13 @@
                         try {
                             await db.collection('solicitudesTraslados').doc(currentSolicitudId.toString()).update({
                                 departamento: solicitudesTraslados[index].departamento,
+                                origenIda: solicitudesTraslados[index].origenIda,
+                                destinoIda: solicitudesTraslados[index].destinoIda,
+                                origenVuelta: solicitudesTraslados[index].origenVuelta,
+                                destinoVuelta: solicitudesTraslados[index].destinoVuelta,
                                 actividades: solicitudesTraslados[index].actividades
                             });
+                            console.log('Cambios sincronizados con Firebase');
                         } catch (error) {
                             console.error('Error al sincronizar edición con Firebase:', error);
                         }
@@ -2918,8 +3141,10 @@
             const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
             modal.hide();
             
+            // Recargar las listas
             buscarComidas(paginaActualComidas);
             buscarTraslados(paginaActualTraslados);
+            
             alert('Cambios guardados exitosamente');
         }
 
@@ -2976,6 +3201,202 @@
                     generarPDFDesdeSolicitudTraslado(solicitud);
                 }
             }
+        }
+
+        // NUEVA FUNCIÓN: Ver detalle de solicitud
+        function verDetalle(id, type) {
+            let solicitud;
+            if (type === 'comida') {
+                solicitud = solicitudesComidas.find(s => s.id === id);
+            } else {
+                solicitud = solicitudesTraslados.find(s => s.id === id);
+            }
+            
+            if (!solicitud) return;
+            
+            let detalleHTML = '';
+            
+            if (type === 'comida') {
+                // Detalle para comida
+                const empleadosList = solicitud.empleadosSeleccionados && solicitud.empleadosSeleccionados.length > 0 ? 
+                    solicitud.empleadosSeleccionados.map(emp => 
+                        `<li><span class="badge ${emp.tipo === 'MSO' ? 'badge-mso' : 'badge-caracas'} me-2">${emp.tipo}</span> ${emp.nombre} - ${emp.cargo}</li>`
+                    ).join('') : '<li>No se seleccionaron empleados</li>';
+                
+                const msoDeptList = solicitud.msoDepartamentos && solicitud.msoDepartamentos.length > 0 ? 
+                    solicitud.msoDepartamentos.map(dept => `<span class="badge bg-secondary me-1">${dept}</span>`).join('') : 'Ninguno';
+                
+                detalleHTML = `
+                    <div class="detalle-solicitud">
+                        <h5><i class="bi bi-info-circle me-2"></i>Información de la Solicitud</h5>
+                        
+                        <div class="detalle-grid">
+                            <div class="detalle-item">
+                                <strong>ID de Solicitud:</strong>
+                                <span>${solicitud.id}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Estado:</strong>
+                                <span><span class="status-badge status-${solicitud.estado}">${solicitud.estado.toUpperCase()}</span></span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Fecha de Solicitud:</strong>
+                                <span>${solicitud.fecha}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Departamento:</strong>
+                                <span>${solicitud.departamento}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Tipo de Comida:</strong>
+                                <span>${solicitud.tipoComida}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Lugar:</strong>
+                                <span>${solicitud.lugar}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Cantidad Interno:</strong>
+                                <span>${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Cantidad Externo:</strong>
+                                <span>${solicitud.cantidadExterno}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Total Comidas:</strong>
+                                <span class="fw-bold">${solicitud.totalComidas}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Fecha Creación:</strong>
+                                <span>${new Date(solicitud.fechaCreacion).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        
+                        ${solicitud.departamento === 'MSO' ? `
+                        <div class="detalle-item mt-3">
+                            <strong>Departamentos MSO:</strong>
+                            <div class="mt-2">${msoDeptList}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="detalle-item mt-3">
+                            <strong>Actividad:</strong>
+                            <p class="mt-2 mb-0">${solicitud.actividad}</p>
+                        </div>
+                        
+                        <div class="detalle-empleados mt-4">
+                            <h6><i class="bi bi-people-fill me-2"></i>Empleados Seleccionados (${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0})</h6>
+                            <ul>
+                                ${empleadosList}
+                            </ul>
+                            ${solicitud.nombreManualMSO ? `<p class="mt-2"><strong>Personal MSO adicional:</strong> ${solicitud.nombreManualMSO}</p>` : ''}
+                        </div>
+                        
+                        <div class="detalle-item mt-4">
+                            <h6><i class="bi bi-person-circle me-2"></i>Datos del Solicitante</h6>
+                            <p><strong>Nombre:</strong> ${solicitud.nombreSolicitante}</p>
+                            <p><strong>Departamento:</strong> ${solicitud.departamentoSolicitante}</p>
+                            <p><strong>Fecha/Hora Solicitud:</strong> ${solicitud.fechaSolicitud} ${solicitud.horaSolicitud}</p>
+                        </div>
+                        
+                        ${solicitud.estado === 'aprobado' ? `
+                        <div class="detalle-item mt-4">
+                            <h6><i class="bi bi-check-circle me-2 text-success"></i>Información de Aprobación</h6>
+                            <p><strong>Aprobado por:</strong> ${solicitud.aprobadoPor}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                // Detalle para traslado
+                const empleadosList = solicitud.empleadosSeleccionados && solicitud.empleadosSeleccionados.length > 0 ? 
+                    solicitud.empleadosSeleccionados.map(emp => 
+                        `<li><span class="badge ${emp.tipo === 'MSO' ? 'badge-mso' : 'badge-caracas'} me-2">${emp.tipo}</span> ${emp.nombre} - ${emp.cargo}</li>`
+                    ).join('') : '<li>No se seleccionaron empleados</li>';
+                
+                const msoDeptList = solicitud.msoDepartamentos && solicitud.msoDepartamentos.length > 0 ? 
+                    solicitud.msoDepartamentos.map(dept => `<span class="badge bg-secondary me-1">${dept}</span>`).join('') : 'Ninguno';
+                
+                detalleHTML = `
+                    <div class="detalle-solicitud">
+                        <h5><i class="bi bi-info-circle me-2"></i>Información de la Solicitud</h5>
+                        
+                        <div class="detalle-grid">
+                            <div class="detalle-item">
+                                <strong>ID de Solicitud:</strong>
+                                <span>${solicitud.id}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Estado:</strong>
+                                <span><span class="status-badge status-${solicitud.estado}">${solicitud.estado.toUpperCase()}</span></span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Fecha de Solicitud:</strong>
+                                <span>${solicitud.fecha}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Departamento:</strong>
+                                <span>${solicitud.departamento}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Fecha Creación:</strong>
+                                <span>${new Date(solicitud.fechaCreacion).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        
+                        ${solicitud.departamento === 'MSO' ? `
+                        <div class="detalle-item mt-3">
+                            <strong>Departamentos MSO:</strong>
+                            <div class="mt-2">${msoDeptList}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="detalle-item mt-3">
+                            <h6>IDA</h6>
+                            <p><strong>Origen:</strong> ${solicitud.origenIda}</p>
+                            <p><strong>Destino:</strong> ${solicitud.destinoIda}</p>
+                        </div>
+                        
+                        <div class="detalle-item mt-3">
+                            <h6>VUELTA</h6>
+                            <p><strong>Origen:</strong> ${solicitud.origenVuelta || 'No especificado'}</p>
+                            <p><strong>Destino:</strong> ${solicitud.destinoVuelta || 'No especificado'}</p>
+                        </div>
+                        
+                        <div class="detalle-item mt-3">
+                            <strong>Actividades:</strong>
+                            <p class="mt-2 mb-0">${solicitud.actividades}</p>
+                        </div>
+                        
+                        <div class="detalle-empleados mt-4">
+                            <h6><i class="bi bi-people-fill me-2"></i>Empleados Seleccionados (${solicitud.empleadosSeleccionados ? solicitud.empleadosSeleccionados.length : 0})</h6>
+                            <ul>
+                                ${empleadosList}
+                            </ul>
+                            ${solicitud.nombreManualMSO ? `<p class="mt-2"><strong>Personal MSO adicional:</strong> ${solicitud.nombreManualMSO}</p>` : ''}
+                        </div>
+                        
+                        <div class="detalle-item mt-4">
+                            <h6><i class="bi bi-person-circle me-2"></i>Datos del Solicitante</h6>
+                            <p><strong>Nombre:</strong> ${solicitud.nombreSolicitante}</p>
+                            <p><strong>Departamento:</strong> ${solicitud.departamentoSolicitante}</p>
+                            <p><strong>Fecha/Hora Traslado:</strong> ${solicitud.fechaSolicitud} ${solicitud.horaSolicitud}</p>
+                        </div>
+                        
+                        ${solicitud.estado === 'aprobado' ? `
+                        <div class="detalle-item mt-4">
+                            <h6><i class="bi bi-check-circle me-2 text-success"></i>Información de Aprobación</h6>
+                            <p><strong>Aprobado por:</strong> ${solicitud.aprobadoPor}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('detalleModalBody').innerHTML = detalleHTML;
+            const modal = new bootstrap.Modal(document.getElementById('detalleModal'));
+            modal.show();
         }
 
         // NUEVAS FUNCIONALIDADES AÑADIDAS
